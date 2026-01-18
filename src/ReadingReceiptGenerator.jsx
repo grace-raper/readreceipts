@@ -4,9 +4,17 @@ import Papa from 'papaparse'
 import html2canvas from 'html2canvas'
 import './ReadingReceiptGenerator.css'
 
-const ReadingReceiptGenerator = () => {
-  const [books, setBooks] = useState([])
-  const [username, setUsername] = useState('')
+const ReadingReceiptGenerator = ({
+  initialBooks = [],
+  initialUsername = '',
+  enableUpload = true,
+  showInputPanel = true,
+  showManualControls = true,
+  showDownloadButton = true,
+  showPageHeader = true,
+}) => {
+  const [books, setBooks] = useState(initialBooks)
+  const [username, setUsername] = useState(initialUsername)
   const [goodreadsUrl, setGoodreadsUrl] = useState('')
   const [period, setPeriod] = useState('all')
   const [showManualEntry, setShowManualEntry] = useState(false)
@@ -19,6 +27,14 @@ const ReadingReceiptGenerator = () => {
   })
   const receiptRef = useRef(null)
   const fileInputRef = useRef(null)
+
+  React.useEffect(() => {
+    setBooks(initialBooks)
+  }, [initialBooks])
+
+  React.useEffect(() => {
+    setUsername(initialUsername)
+  }, [initialUsername])
 
   const extractGoodreadsUsername = (url) => {
     if (!url) return ''
@@ -198,11 +214,16 @@ const ReadingReceiptGenerator = () => {
   return (
     <div className="rrg-page">
       <div className="rrg-container">
-        <h1 className="rrg-title">Read Receipts</h1>
-        <p className="rrg-subtitle">Upload your CSV or manually enter books to generate a retro reading receipt.</p>
+        {showPageHeader && (
+          <>
+            <h1 className="rrg-title">Read Receipts</h1>
+            <p className="rrg-subtitle">Upload your CSV or manually enter books to generate a retro reading receipt.</p>
+          </>
+        )}
 
         <div className="rrg-grid">
-          <div className="rrg-card">
+          {showInputPanel && (
+            <div className="rrg-card">
             <h2>Input Data</h2>
 
             <div style={{ marginBottom: '1rem' }}>
@@ -240,70 +261,76 @@ const ReadingReceiptGenerator = () => {
               </select>
             </div>
 
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label className="rrg-label">Upload CSV (Goodreads/StoryGraph)</label>
-              <div className="rrg-upload" role="button" tabIndex={0} onClick={triggerCSVPicker} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && triggerCSVPicker()}>
-                <input ref={fileInputRef} type="file" accept=".csv" onChange={handleCSVUpload} style={{ display: 'none' }} />
-                <Upload size={28} />
-                <div className="rrg-upload-title">Click to upload CSV file</div>
-                <div className="rrg-upload-sub">We parse Title, Author, Pages, Rating, Date</div>
+            {enableUpload && (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label className="rrg-label">Upload CSV (Goodreads/StoryGraph)</label>
+                <div className="rrg-upload" role="button" tabIndex={0} onClick={triggerCSVPicker} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && triggerCSVPicker()}>
+                  <input ref={fileInputRef} type="file" accept=".csv" onChange={handleCSVUpload} style={{ display: 'none' }} />
+                  <Upload size={28} />
+                  <div className="rrg-upload-title">Click to upload CSV file</div>
+                  <div className="rrg-upload-sub">We parse Title, Author, Pages, Rating, Date</div>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div style={{ marginBottom: '1rem' }}>
-              <button className="rrg-button" onClick={() => setShowManualEntry(!showManualEntry)}>
-                <Plus size={18} />
-                Add Book Manually
-              </button>
-            </div>
+            {showManualControls && (
+              <>
+                <div style={{ marginBottom: '1rem' }}>
+                  <button className="rrg-button" onClick={() => setShowManualEntry(!showManualEntry)}>
+                    <Plus size={18} />
+                    Add Book Manually
+                  </button>
+                </div>
 
-            {showManualEntry && (
-              <div className="rrg-manual">
-                <input
-                  type="text"
-                  placeholder="Title"
-                  value={manualBook.title}
-                  onChange={(e) => setManualBook({ ...manualBook, title: e.target.value })}
-                  className="rrg-input"
-                  style={{ marginBottom: '0.5rem' }}
-                />
-                <input
-                  type="text"
-                  placeholder="Author"
-                  value={manualBook.author}
-                  onChange={(e) => setManualBook({ ...manualBook, author: e.target.value })}
-                  className="rrg-input"
-                  style={{ marginBottom: '0.5rem' }}
-                />
-                <input
-                  type="number"
-                  placeholder="Pages"
-                  value={manualBook.pages}
-                  onChange={(e) => setManualBook({ ...manualBook, pages: e.target.value })}
-                  className="rrg-input"
-                  style={{ marginBottom: '0.5rem' }}
-                />
-                <input
-                  type="number"
-                  step="0.5"
-                  max="5"
-                  placeholder="Rating (1-5)"
-                  value={manualBook.rating}
-                  onChange={(e) => setManualBook({ ...manualBook, rating: e.target.value })}
-                  className="rrg-input"
-                  style={{ marginBottom: '0.5rem' }}
-                />
-                <input
-                  type="date"
-                  value={manualBook.dateFinished}
-                  onChange={(e) => setManualBook({ ...manualBook, dateFinished: e.target.value })}
-                  className="rrg-input"
-                  style={{ marginBottom: '0.75rem' }}
-                />
-                <button className="rrg-button" onClick={addManualBook} style={{ background: '#16a34a' }}>
-                  Add Book
-                </button>
-              </div>
+                {showManualEntry && (
+                  <div className="rrg-manual">
+                    <input
+                      type="text"
+                      placeholder="Title"
+                      value={manualBook.title}
+                      onChange={(e) => setManualBook({ ...manualBook, title: e.target.value })}
+                      className="rrg-input"
+                      style={{ marginBottom: '0.5rem' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Author"
+                      value={manualBook.author}
+                      onChange={(e) => setManualBook({ ...manualBook, author: e.target.value })}
+                      className="rrg-input"
+                      style={{ marginBottom: '0.5rem' }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Pages"
+                      value={manualBook.pages}
+                      onChange={(e) => setManualBook({ ...manualBook, pages: e.target.value })}
+                      className="rrg-input"
+                      style={{ marginBottom: '0.5rem' }}
+                    />
+                    <input
+                      type="number"
+                      step="0.5"
+                      max="5"
+                      placeholder="Rating (1-5)"
+                      value={manualBook.rating}
+                      onChange={(e) => setManualBook({ ...manualBook, rating: e.target.value })}
+                      className="rrg-input"
+                      style={{ marginBottom: '0.5rem' }}
+                    />
+                    <input
+                      type="date"
+                      value={manualBook.dateFinished}
+                      onChange={(e) => setManualBook({ ...manualBook, dateFinished: e.target.value })}
+                      className="rrg-input"
+                      style={{ marginBottom: '0.75rem' }}
+                    />
+                    <button className="rrg-button" onClick={addManualBook} style={{ background: '#16a34a' }}>
+                      Add Book
+                    </button>
+                  </div>
+                )}
+              </>
             )}
 
             {books.length > 0 && (
@@ -326,17 +353,20 @@ const ReadingReceiptGenerator = () => {
               </div>
             )}
           </div>
+          )}
 
           <div className="rrg-preview">
-            <button
-              onClick={downloadReceipt}
-              disabled={books.length === 0}
-              className="rrg-button secondary"
-              style={{ width: 'fit-content', minWidth: '220px' }}
-            >
-              <Download size={18} />
-              Download Receipt
-            </button>
+            {showDownloadButton && (
+              <button
+                onClick={downloadReceipt}
+                disabled={books.length === 0}
+                className="rrg-button secondary"
+                style={{ width: 'fit-content', minWidth: '220px' }}
+              >
+                <Download size={18} />
+                Download Receipt
+              </button>
+            )}
 
             {books.length === 0 ? (
               <div className="rrg-empty">Upload data or add books to generate receipt</div>
