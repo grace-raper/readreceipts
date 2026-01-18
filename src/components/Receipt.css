@@ -1,0 +1,86 @@
+.rrg-receipt {
+  background: #ffffff;
+  padding: 1.75rem 1.5rem;
+  width: 400px;
+  max-width: 90vw;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #111;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.28),
+    0 10px 24px rgba(0, 0, 0, 0.18);
+  border-radius: 0;
+  position: relative;
+  background-image:
+    url('/paper.png'),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.55), transparent 35%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.04), transparent 22%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.02), transparent 22%);
+  background-blend-mode: multiply, screen, normal, normal;
+  background-size: cover, auto, auto, auto;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.rrg-receipt::after {
+  content: none;
+}
+
+.rrg-receipt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 15%,
+    transparent 85%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+}
+
+.rrg-dashed,
+.rrg-dashed-top {
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.rrg-chip {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #16110d;
+}
+
+.rrg-item-row {
+  display: grid;
+  grid-template-columns: 45px minmax(0, 1fr) 65px;
+  column-gap: 0.35rem;
+  margin-bottom: 0.5rem;
+  font-size: 12px;
+}
+
+.rrg-item-rating {
+  text-align: left;
+  font-weight: 600;
+}
+
+.rrg-item-title {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  line-height: 1.4;
+}
+
+.rrg-item-price {
+  text-align: right;
+  font-weight: 600;
+}
+
+.rrg-barcode {
+  margin: 1.5rem auto 1rem;
+  display: flex;
+  justify-content: center;
+}

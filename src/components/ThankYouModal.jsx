@@ -1,0 +1,72 @@
+import React from 'react'
+import { X, Coffee, Heart } from 'lucide-react'
+import './ThankYouModal.css'
+
+const ThankYouModal = ({ isOpen, onClose }) => {
+  if (!isOpen) return null
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>
+          <X size={20} />
+        </button>
+
+        <div className="modal-header">
+          <Heart size={32} style={{ color: '#d97706' }} />
+          <h2>Thanks for using Read Receipts!</h2>
+          <img src="/grace-avatar.png" alt="Grace" className="modal-avatar" />
+        </div>
+
+        <div className="modal-body">
+          <p>
+           Hi, I’m Grace! 👋 I’m a software engineer and avid reader based in Seattle, WA, and I build and maintain Read Receipts in my free time.
+          </p>
+
+          <div className="modal-actions">
+            <p className="modal-support-copy">
+              If you’ve enjoyed using the project and have the means, sponsoring me helps keep the site running (and fuels my coffee habit ☕️):
+            </p>
+            <a
+              href="https://buymeacoffee.com/hk46zntm5pq"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="modal-button primary pill"
+            >
+              <Coffee size={18} />
+              Sponsor / Buy me a coffee
+            </a>
+            <p className="modal-support-copy">
+              No budget but still want to support? Following me on Goodreads or StoryGraph means a lot — maybe one day I’ll even become a #bookfluencer or land a few ARCs.
+            </p>
+
+            <a
+              href="https://www.goodreads.com/user/show/grace-raper"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="modal-button secondary"
+            >
+              Follow me on Goodreads
+            </a>
+            <a
+              href="https://app.thestorygraph.com/profile/graceraper"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="modal-button secondary"
+            >
+              Follow me on StoryGraph
+            </a>
+          </div>
+
+          <div className="modal-footer">
+            <p>
+              And if you share your receipt on social media, tag <strong>@readreceipts.xyz</strong> so I can see what you’re reading. 💛
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default ThankYouModal
