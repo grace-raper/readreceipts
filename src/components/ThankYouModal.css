@@ -21,6 +21,8 @@
   position: relative;
   padding: 2rem;
   animation: modalSlideIn 0.3s ease-out;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
 }
 
 @keyframes modalSlideIn {
@@ -177,4 +179,44 @@
   font-size: 0.95rem;
   color: #4a3c33;
   line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 1.25rem;
+    max-width: 94vw;
+  }
+
+  .modal-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .modal-avatar {
+    width: 76px;
+    height: 76px;
+  }
+
+  .modal-body > p,
+  .modal-support-copy {
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .modal-button {
+    font-size: 0.9rem;
+    padding: 0.75rem 1.2rem;
+  }
+
+  .modal-actions {
+    gap: 0.6rem;
+  }
+
+  .modal-footer p {
+    font-size: 0.88rem;
+  }
+
+  .modal-header h2,
+  .modal-header svg {
+    display: none;
+  }
 }

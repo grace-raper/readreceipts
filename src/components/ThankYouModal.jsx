@@ -41,7 +41,7 @@ const ThankYouModal = ({ isOpen, onClose }) => {
             </p>
 
             <a
-              href="https://www.goodreads.com/user/show/grace-raper"
+              href="https://www.goodreads.com/graceraper"
               target="_blank"
               rel="noopener noreferrer"
               className="modal-button secondary"
