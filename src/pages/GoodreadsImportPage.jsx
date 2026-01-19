@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Upload } from 'lucide-react'
+import { Upload, BookOpen, BookMarked, BookX } from 'lucide-react'
 import Papa from 'papaparse'
 import '../ReadingReceiptGenerator.css'
 
@@ -7,19 +7,33 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
   const fileInputRef = useRef(null)
   const [uploadError, setUploadError] = useState('')
   const [uploadSuccess, setUploadSuccess] = useState('')
+  const [shelfCounts, setShelfCounts] = useState({
+    read: 0,
+    currentlyReading: 0,
+    toRead: 0
+  })
 
-  const isCompletedRow = (row) => {
-    const shelf = row['Exclusive Shelf']
-    return shelf && shelf.toLowerCase().trim() === 'read'
+  const getShelfType = (row) => {
+    const shelf = row['Exclusive Shelf']?.toLowerCase().trim()
+    if (!shelf) return null
+    
+    if (shelf === 'read') return 'read'
+    if (shelf === 'currently-reading') return 'currentlyReading'
+    if (shelf === 'to-read') return 'toRead'
+    return null
   }
 
-  const normalizeRow = (row) => ({
+  const normalizeRow = (row, shelfType) => ({
     title: row.Title || row.title || '',
     author: row.Author || row.author || row['Author l-f'] || '',
     pages: parseInt(row['Number of Pages'] || row.pages || row['Page Count'] || 0),
     rating: parseFloat(row['My Rating'] || row.rating || row.Rating || 0),
     dateFinished: row['Date Read'] || row['date finished'] || row['Date Finished'] || '',
     dateStarted: row['Date Started'] || row['date started'] || '',
+    dateAdded: row['Date Added'] || '',
+    shelf: shelfType,
+    progress: shelfType === 'currentlyReading' ? Math.floor(Math.random() * 80) + 5 : 0, // Mock progress for currently reading
+    hidden: false
   })
 
   const parseCsv = (file) => {
@@ -27,19 +41,42 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
       Papa.parse(file, {
         header: true,
         complete: (results) => {
-          const completedRows = results.data.filter(isCompletedRow)
-          const parsedBooks = completedRows
-            .filter((row) => row.Title && row.Title.trim())
-            .map(normalizeRow)
-
-          if (parsedBooks.length === 0) {
-            reject(new Error('No completed books found. Make sure your CSV has books marked as "read".'))
+          // Group books by shelf type
+          const books = []
+          const counts = { read: 0, currentlyReading: 0, toRead: 0 }
+          
+          results.data.forEach(row => {
+            if (!row.Title || !row.Title.trim()) return
+            
+            const shelfType = getShelfType(row)
+            if (!shelfType) return
+            
+            counts[shelfType]++
+            books.push(normalizeRow(row, shelfType))
+          })
+          
+          setShelfCounts(counts)
+          
+          if (books.length === 0) {
+            reject(new Error('No valid books found in the CSV file.'))
             return
           }
+          
+          // Sort books: read books by date finished (newest first), others by date added
+          books.sort((a, b) => {
+            if (a.shelf === 'read' && b.shelf === 'read') {
+              // Sort read books by date finished (newest first)
+              return new Date(b.dateFinished || 0) - new Date(a.dateFinished || 0)
+            } else {
+              // Sort other books by date added (newest first)
+              return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0)
+            }
+          })
 
           resolve({
-            books: parsedBooks,
+            books,
             username: results.data[0]?.['Goodreads User'] || '',
+            shelfCounts: counts
           })
         },
         error: (err) => reject(err),
@@ -55,11 +92,20 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
     setUploadSuccess('')
 
     try {
-      const { books, username } = await parseCsv(file)
-      setUploadSuccess(`✓ Loaded ${books.length} completed book${books.length !== 1 ? 's' : ''}`)
+      const { books, username, shelfCounts } = await parseCsv(file)
+      setUploadSuccess(
+        <>
+          <div>✓ Successfully loaded your Goodreads library</div>
+          <div className="shelf-counts">
+            <div><BookOpen size={14} /> {shelfCounts.read} read</div>
+            <div><BookMarked size={14} /> {shelfCounts.currentlyReading} currently reading</div>
+            <div><BookX size={14} /> {shelfCounts.toRead} to read</div>
+          </div>
+        </>
+      )
       setTimeout(() => {
-        onImportComplete(books, username)
-      }, 800)
+        onImportComplete(books, username, shelfCounts)
+      }, 1200)
     } catch (err) {
       setUploadError(err.message)
     }
@@ -116,7 +162,7 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
           )}
 
           {uploadSuccess && (
-            <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#efe', border: '1px solid #cfc', borderRadius: '4px', color: '#3c3' }}>
+            <div className="rrg-success-message">
               {uploadSuccess}
             </div>
           )}

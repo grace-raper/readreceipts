@@ -56,7 +56,7 @@
 
 .rrg-item-row {
   display: grid;
-  grid-template-columns: 45px minmax(0, 1fr) 65px;
+  grid-template-columns: 45px minmax(0, 1fr) 35px;
   column-gap: 0.35rem;
   margin-bottom: 0.5rem;
   font-size: 12px;
@@ -68,15 +68,27 @@
 }
 
 .rrg-item-title {
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  hyphens: auto;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
   line-height: 1.4;
+}
+
+.rrg-item-author {
+  white-space: normal;
 }
 
 .rrg-item-price {
   text-align: right;
   font-weight: 600;
+}
+
+/* Two-column layout for shelf receipts (item + pages) */
+.rrg-item-row--shelf {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 65px !important;
+  column-gap: 0.35rem;
+  align-items: start;
 }
 
 .rrg-barcode {
