@@ -7,7 +7,7 @@ const ReceiptItemList = ({
   columnHeaders = { left: '★', middle: 'ITEM', right: 'PAGES' }
 }) => {
   return (
-    <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+    <>
       <div
         style={{
           display: 'grid',
@@ -36,7 +36,7 @@ const ReceiptItemList = ({
             <div className="rrg-item-price">{formatPrice(book.pages)}</div>
           </div>
         ))}
-    </div>
+    </>
   )
 }
 

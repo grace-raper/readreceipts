@@ -8,6 +8,7 @@ import ReceiptTotal from './receipt-parts/ReceiptTotal'
 import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
 import ReceiptSectionHeader from './receipt-parts/ReceiptSectionHeader'
+import DashedDivider from './receipt-parts/DashedDivider'
 
 const YearReceipt = React.forwardRef(({ books, username, period, template, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS', selectedYear }, ref) => {
   // Additional stats for yearly receipt
@@ -54,16 +55,22 @@ const YearReceipt = React.forwardRef(({ books, username, period, template, stats
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title={receiptTitle} username={username} />
       
+      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      
       <ReceiptMetadata 
         leftText={`YOUR ${currentYear} READING`} 
         rightText={today} 
       />
+
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
 
       <ReceiptItemList 
         displayBooks={displayBooks}
         renderStars={renderStars}
         formatPrice={formatPrice}
       />
+      
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
       
       <ReceiptTotal 
         label="TOTAL" 
@@ -72,7 +79,10 @@ const YearReceipt = React.forwardRef(({ books, username, period, template, stats
       />
 
       {showStats.statsSection !== false && (
-        <ReceiptSection dashed paddingTop="0.9rem" paddingBottom="0.9rem">
+        <>
+          <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+          
+          <ReceiptSection paddingTop="0" paddingBottom="0">
           {showStats.booksRead && (
             <ReceiptStatRow label="BOOKS READ:" value={stats.totalBooks} />
           )}
@@ -86,10 +96,14 @@ const YearReceipt = React.forwardRef(({ books, username, period, template, stats
             <ReceiptStatRow label="EST. READING TIME:" value={`${stats.totalHours} hrs`} isLast />
           )}
         </ReceiptSection>
+        </>
       )}
 
       {isYearTemplate && showStats.goalSection !== false && (
-        <ReceiptSection paddingTop="0.9rem" paddingBottom="0.9rem">
+        <>
+          <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+          
+          <ReceiptSection paddingTop="0" paddingBottom="0">
           <ReceiptSectionHeader 
             title={`${displayYear} READING GOAL`} 
             align="left" 
@@ -117,10 +131,14 @@ const YearReceipt = React.forwardRef(({ books, username, period, template, stats
             </div>
           )}
         </ReceiptSection>
+        </>
       )}
 
       {isYearTemplate && showStats.highlightsSection !== false && (
-        <ReceiptSection dashed paddingTop="0.9rem" paddingBottom="0.9rem">
+        <>
+          <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+          
+          <ReceiptSection paddingTop="0" paddingBottom="0">
           <ReceiptSectionHeader 
             title={`${displayYear} HIGHLIGHTS`} 
             align="left" 
@@ -147,6 +165,7 @@ const YearReceipt = React.forwardRef(({ books, username, period, template, stats
             <ReceiptStatRow label="TOP AUTHOR:" value={stats.topAuthor} isLast />
           )}
         </ReceiptSection>
+        </>
       )}
 
       <Barcode barcode={barcode} marginTop="0.35rem" />

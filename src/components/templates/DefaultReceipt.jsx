@@ -7,22 +7,29 @@ import ReceiptItemList from './receipt-parts/ReceiptItemList'
 import ReceiptTotal from './receipt-parts/ReceiptTotal'
 import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
+import DashedDivider from './receipt-parts/DashedDivider'
 
 const DefaultReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS' }, ref) => {
   return (
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title={receiptTitle} username={username} />
       
+      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      
       <ReceiptMetadata 
         leftText={`ORDER #${orderId}`} 
         rightText={today} 
       />
+
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
 
       <ReceiptItemList 
         displayBooks={displayBooks}
         renderStars={renderStars}
         formatPrice={formatPrice}
       />
+      
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
       
       <ReceiptTotal 
         label="TOTAL" 
@@ -31,20 +38,24 @@ const DefaultReceipt = React.forwardRef(({ books, username, period, stats, displ
       />
 
       {stats.showStats?.statsSection !== false && (
-        <ReceiptSection paddingTop="0.9rem" paddingBottom="0.9rem">
-          {stats.showStats?.booksRead !== false && (
-            <ReceiptStatRow label="BOOKS READ:" value={stats.totalBooks} />
-          )}
-          {stats.showStats?.avgRating !== false && (
-            <ReceiptStatRow label="AVG RATING:" value={`${stats.avgRating}/5`} />
-          )}
-          {stats.showStats?.totalPages !== false && (
-            <ReceiptStatRow label="TOTAL PAGES:" value={stats.totalPages.toLocaleString()} />
-          )}
-          {stats.showStats?.estHours !== false && (
-            <ReceiptStatRow label="EST. READING TIME:" value={`${stats.totalHours} HOURS`} isLast />
-          )}
-        </ReceiptSection>
+        <>
+          <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+          
+          <ReceiptSection paddingTop="0" paddingBottom="0">
+            {stats.showStats?.booksRead !== false && (
+              <ReceiptStatRow label="BOOKS READ:" value={stats.totalBooks} />
+            )}
+            {stats.showStats?.avgRating !== false && (
+              <ReceiptStatRow label="AVG RATING:" value={`${stats.avgRating}/5`} />
+            )}
+            {stats.showStats?.totalPages !== false && (
+              <ReceiptStatRow label="TOTAL PAGES:" value={stats.totalPages.toLocaleString()} />
+            )}
+            {stats.showStats?.estHours !== false && (
+              <ReceiptStatRow label="EST. READING TIME:" value={`${stats.totalHours} HOURS`} isLast />
+            )}
+          </ReceiptSection>
+        </>
       )}
 
       <Barcode barcode={barcode} />

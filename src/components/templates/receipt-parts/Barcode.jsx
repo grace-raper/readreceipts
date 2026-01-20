@@ -28,7 +28,7 @@ const Barcode = ({ barcode, url = 'https://readreceipts.xyz', marginTop = '0.35r
   return (
     <div style={{ textAlign: 'center', marginTop }}>
       {renderBarcode()}
-      <div style={{ fontSize: '11px', color: '#4b5563', marginTop: '0.15rem' }}>{url}</div>
+      <div style={{ fontSize: '11px', color: '#4b5563', marginTop: '-2rem' }}>{url}</div>
     </div>
   )
 }

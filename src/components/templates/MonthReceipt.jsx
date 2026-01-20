@@ -7,6 +7,7 @@ import ReceiptItemList from './receipt-parts/ReceiptItemList'
 import ReceiptTotal from './receipt-parts/ReceiptTotal'
 import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
+import DashedDivider from './receipt-parts/DashedDivider'
 
 const MonthReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS', selectedYear, selectedMonth }, ref) => {
   const booksWithRatings = books.filter(book => book.rating > 0)
@@ -23,16 +24,22 @@ const MonthReceipt = React.forwardRef(({ books, username, period, stats, display
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title={receiptTitle} username={username} />
       
+      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      
       <ReceiptMetadata 
         leftText={`MONTHLY READING`} 
         rightText={today} 
       />
+
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
 
       <ReceiptItemList 
         displayBooks={displayBooks}
         renderStars={renderStars}
         formatPrice={formatPrice}
       />
+      
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
       
       <ReceiptTotal 
         label="TOTAL" 
@@ -41,7 +48,10 @@ const MonthReceipt = React.forwardRef(({ books, username, period, stats, display
       />
 
       {showStats.statsSection !== false && (
-        <ReceiptSection dashed paddingTop="0.9rem" paddingBottom="0.9rem">
+        <>
+          <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+          
+          <ReceiptSection paddingTop="0" paddingBottom="0">
           {showStats.booksRead && (
             <ReceiptStatRow label="BOOKS READ:" value={stats.totalBooks} />
           )}
@@ -58,6 +68,7 @@ const MonthReceipt = React.forwardRef(({ books, username, period, stats, display
             <ReceiptStatRow label="5★ READS:" value={fiveStarBooks} isLast />
           )}
         </ReceiptSection>
+        </>
       )}
 
       <Barcode barcode={barcode} marginTop="0.35rem" />

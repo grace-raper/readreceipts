@@ -5,6 +5,7 @@ import ReceiptMetadata from './receipt-parts/ReceiptMetadata'
 import ReceiptTotal from './receipt-parts/ReceiptTotal'
 import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
+import DashedDivider from './receipt-parts/DashedDivider'
 
 const CurrentlyReadingReceipt = React.forwardRef(({ books, username, stats, displayBooks, today, formatPrice, getPeriodLabel, barcode }, ref) => {
   const now = new Date()
@@ -32,12 +33,16 @@ const CurrentlyReadingReceipt = React.forwardRef(({ books, username, stats, disp
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title="CURRENTLY READING" username={username} />
       
+      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      
       <ReceiptMetadata 
         leftText="SHELF SUMMARY" 
         rightText={today} 
       />
 
-      <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+
+      <div>
         <div
           style={{
             display: 'grid',
@@ -66,13 +71,17 @@ const CurrentlyReadingReceipt = React.forwardRef(({ books, username, stats, disp
           ))}
       </div>
       
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+      
       <ReceiptTotal 
         label="TOTAL" 
         value={stats.totalPages} 
         formatPrice={formatPrice} 
       />
 
-      <ReceiptSection dashed paddingTop="0.9rem" paddingBottom="0.9rem">
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+      
+      <ReceiptSection paddingTop="0" paddingBottom="0">
         {shelfStats.map((stat, index) => (
           <ReceiptStatRow 
             key={index} 
@@ -83,10 +92,10 @@ const CurrentlyReadingReceipt = React.forwardRef(({ books, username, stats, disp
         ))}
       </ReceiptSection>
 
+      <DashedDivider marginTop="0.8rem" marginBottom="0" />
+
       <div
         style={{
-          borderTop: '1px solid rgba(0, 0, 0, 0.2)',
-          marginTop: '0.8rem',
           paddingTop: '1rem',
           textAlign: 'center',
         }}

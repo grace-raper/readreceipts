@@ -5,6 +5,7 @@ import ReceiptMetadata from './receipt-parts/ReceiptMetadata'
 import ReceiptTotal from './receipt-parts/ReceiptTotal'
 import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
+import DashedDivider from './receipt-parts/DashedDivider'
 
 const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, today, formatPrice, getPeriodLabel, barcode, showStats = {} }, ref) => {
   const currentYear = new Date().getFullYear()
@@ -46,12 +47,16 @@ const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, tod
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title="TBR BOOKS" username={username} />
       
+      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      
       <ReceiptMetadata 
         leftText="SHELF SUMMARY" 
         rightText={today} 
       />
 
-      <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+
+      <div>
         <div
           style={{
             display: 'grid',
@@ -80,6 +85,8 @@ const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, tod
           ))}
       </div>
       
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+      
       <ReceiptTotal 
         label="TOTAL" 
         value={stats.totalPages} 
@@ -87,7 +94,10 @@ const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, tod
       />
 
       {showStats?.tbrSection !== false && (
-        <ReceiptSection dashed paddingTop="0.9rem" paddingBottom="0.9rem">
+        <>
+          <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
+          
+          <ReceiptSection paddingTop="0" paddingBottom="0">
           {shelfStats
             .filter((stat) => showStats?.[stat.key] !== false)
             .map((stat, index) => (
@@ -99,12 +109,13 @@ const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, tod
               />
             ))}
         </ReceiptSection>
+        </>
       )}
+
+      <DashedDivider marginTop="0.8rem" marginBottom="0" />
 
       <div
         style={{
-          borderTop: '1px solid rgba(0, 0, 0, 0.2)',
-          marginTop: '0.8rem',
           paddingTop: '1rem',
           textAlign: 'center',
         }}
