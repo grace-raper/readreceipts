@@ -79,6 +79,13 @@ const RatingsReceipt = React.forwardRef(({ books, username, period, stats, displ
           ))}
       </div>
       
+      <div style={{ paddingTop: '0.9rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700 }}>
+          <span>TOTAL</span>
+          <span>{formatPrice(stats.totalPages)}</span>
+        </div>
+      </div>
+
       <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
           <span>BOOKS RATED:</span>
@@ -112,7 +119,7 @@ const RatingsReceipt = React.forwardRef(({ books, username, period, stats, displ
         )}
       </div>
 
-      <div style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+      <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
         <div style={{ textAlign: 'center', fontWeight: 600, marginBottom: '0.8rem' }}>
           TOP 5 HIGHEST RATED BOOKS
         </div>
@@ -131,13 +138,6 @@ const RatingsReceipt = React.forwardRef(({ books, username, period, stats, displ
         }
       </div>
 
-      <div style={{ paddingTop: '0.9rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700 }}>
-          <span>OVERALL RATING</span>
-          <span>★{stats.avgRating}</span>
-        </div>
-      </div>
-
       <div
         style={{
           borderTop: '1px solid rgba(0, 0, 0, 0.2)',
@@ -147,17 +147,11 @@ const RatingsReceipt = React.forwardRef(({ books, username, period, stats, displ
         }}
       >
         <div className="rrg-chip">STARS TELL THE STORY</div>
-        <p style={{ margin: '0.6rem 0 0', fontSize: '11px', opacity: 0.7 }}>{getPeriodLabel()}</p>
       </div>
 
-      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-        <p style={{ margin: 0, fontSize: '14px' }}>RATE ON!</p>
-      </div>
-
-      {barcode}
-
-      <div style={{ textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
-        <p style={{ margin: 0 }}>readingreceipt.app</p>
+      <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+        {barcode}
+        <div style={{ fontSize: '11px', color: '#4b5563', marginTop: '0.25rem' }}>https://readreceipts.xyz</div>
       </div>
     </div>
   )

@@ -1,7 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Download, Plus, X, Edit2, Check, Calendar, BookOpen, Star, PieChart, ListChecks, BookMarked, BookX, Snowflake, Flower, Sun, Leaf, Share2 } from 'lucide-react'
-import html2canvas from 'html2canvas'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useDropzone } from 'react-dropzone'
+import { faker } from '@faker-js/faker'
+import Papa from 'papaparse'
+import { BookOpen, BookMarked, Calendar, ListChecks, Snowflake, Flower, Sun, Leaf, Edit2, Plus, Check } from 'lucide-react'
 import ReceiptWrapper from '../components/ReceiptWrapper'
+import SummaryStatsToggles from '../components/SummaryStatsToggles'
+import TbrStatToggles from '../components/TbrStatToggles'
 import ThankYouModal from '../components/ThankYouModal'
 import '../ReadingReceiptGenerator.css'
 import '../ReceiptTemplates.css'
@@ -27,13 +31,28 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
     totalPages: true,
     estHours: true,
     avgRating: true,
-    topAuthor: true
+    statsSection: true,
+    goalSection: true,
+    goalBooks: true,
+    goalBooksRead: true,
+    goalProgress: true,
+    highlightsSection: true,
+    highlightsAvgLength: true,
+    highlightsAvgRating: true,
+    highlightsFiveStar: true,
+    highlightsMostReadMonth: true,
+    highlightsShortest: true,
+    highlightsLongest: true,
+    tbrSection: true,
+    tbrBooks: true,
+    tbrAddedThisYear: true,
+    tbrOldest: true,
+    tbrNewest: true,
   })
   const [showManualEntry, setShowManualEntry] = useState(false)
   const [showAllBooksModal, setShowAllBooksModal] = useState(false)
   const [modalShelf, setModalShelf] = useState('all')
   const [showThankYouModal, setShowThankYouModal] = useState(false)
-  const [showShareMenu, setShowShareMenu] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [feedbackText, setFeedbackText] = useState('')
   const [chromeHidden, setChromeHidden] = useState(false)
@@ -75,8 +94,30 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
       setCustomSeasonStart(storedCustomSeasonStart)
       setCustomSeasonEnd(storedCustomSeasonEnd)
       setPagesPerHour(storedPagesPerHour)
-      setNumBooksToShow(storedNumBooksToShow)
-      setShowStats(storedShowStats)
+      setNumBooksToShow(storedNumBooksToShow || 10)
+      setShowStats({
+        statsSection: storedShowStats?.statsSection ?? true,
+        booksRead: storedShowStats?.booksRead ?? true,
+        totalPages: storedShowStats?.totalPages ?? true,
+        estHours: storedShowStats?.estHours ?? true,
+        avgRating: storedShowStats?.avgRating ?? true,
+        goalSection: storedShowStats?.goalSection ?? true,
+        goalBooks: storedShowStats?.goalBooks ?? true,
+        goalBooksRead: storedShowStats?.goalBooksRead ?? true,
+        goalProgress: storedShowStats?.goalProgress ?? true,
+        highlightsSection: storedShowStats?.highlightsSection ?? true,
+        highlightsAvgLength: storedShowStats?.highlightsAvgLength ?? true,
+        highlightsAvgRating: storedShowStats?.highlightsAvgRating ?? true,
+        highlightsFiveStar: storedShowStats?.highlightsFiveStar ?? true,
+        highlightsMostReadMonth: storedShowStats?.highlightsMostReadMonth ?? true,
+        highlightsShortest: storedShowStats?.highlightsShortest ?? true,
+        highlightsLongest: storedShowStats?.highlightsLongest ?? true,
+        tbrSection: storedShowStats?.tbrSection ?? true,
+        tbrBooks: storedShowStats?.tbrBooks ?? true,
+        tbrAddedThisYear: storedShowStats?.tbrAddedThisYear ?? true,
+        tbrOldest: storedShowStats?.tbrOldest ?? true,
+        tbrNewest: storedShowStats?.tbrNewest ?? true,
+      })
       setShowManualEntry(storedShowManualEntry)
       setModalShelf(storedModalShelf)
       setEditingBook(storedEditingBook)
@@ -317,14 +358,12 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
           return true
         })
 
+  const effectiveNumBooksToShow = numBooksToShow || 1
+
   return (
     <div className="rrg-page">
 
       <div className="rrg-container">
-        <div className="rrg-page-header">
-          <h1 className="rrg-title">Reading Receipt Generator</h1>
-        </div>
-
         <div className="rrg-content">
           <div className="rrg-main-layout">
             <div className="rrg-customize">
@@ -385,13 +424,19 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                   <label className="rrg-label">Number of books to show</label>
                   <input
                     type="number"
-                    value={numBooksToShow}
-                    onChange={(e) => setNumBooksToShow(parseInt(e.target.value) || 5)}
+                    value={numBooksToShow === null ? '' : numBooksToShow}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === '') return setNumBooksToShow(null)
+                      const parsed = Math.max(1, Math.min(50, parseInt(val, 10) || 1))
+                      setNumBooksToShow(parsed)
+                    }}
                     className="rrg-input"
-                    min="1"
                     max="50"
                   />
                 </div>
+
+                <TbrStatToggles showStats={showStats} setShowStats={setShowStats} />
               </div>
             )}
             
@@ -401,86 +446,24 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                   <label className="rrg-label">Number of books to include in stats</label>
                   <input
                     type="number"
-                    value={numBooksToShow}
-                    onChange={(e) => setNumBooksToShow(parseInt(e.target.value) || 10)}
+                    value={numBooksToShow === null ? '' : numBooksToShow}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === '') return setNumBooksToShow(null)
+                      const parsed = Math.max(1, Math.min(50, parseInt(val, 10) || 1))
+                      setNumBooksToShow(parsed)
+                    }}
                     className="rrg-input"
-                    min="1"
                     max="50"
                   />
                 </div>
 
-                <div className="rrg-toggles-section">
-                  <label className="rrg-label">Show Summary Stats</label>
-                  <div className="rrg-toggle-group">
-                    <label className="rrg-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={showStats.booksRead}
-                        onChange={(e) => setShowStats({...showStats, booksRead: e.target.checked})}
-                        className="rrg-checkbox"
-                      />
-                      Books Read
-                    </label>
-                    
-                    <label className="rrg-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={showStats.totalPages}
-                        onChange={(e) => setShowStats({...showStats, totalPages: e.target.checked})}
-                        className="rrg-checkbox"
-                      />
-                      Total Pages
-                    </label>
-                    
-                    <label className="rrg-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={showStats.estHours}
-                        onChange={(e) => setShowStats({...showStats, estHours: e.target.checked})}
-                        className="rrg-checkbox"
-                      />
-                      Est. Reading Time
-                    </label>
-                    
-                    {showStats.estHours && (
-                      <div style={{ marginLeft: '2rem', marginTop: '-0.5rem', maxWidth: '100%' }}>
-                        <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: '#4b5563' }}>
-                          We estimate reading time based the total number of pages read and on your estimated reading speed. How many pages do you read per hour?
-                        </p>
-                        <input
-                          type="number"
-                          value={pagesPerHour}
-                          onChange={(e) => setPagesPerHour(parseInt(e.target.value) || 30)}
-                          className="rrg-input"
-                          min="1"
-                          max="200"
-                          style={{ marginTop: '0.5rem', marginBottom: '0.5rem', padding: '0.35rem 0.5rem', fontSize: '0.9rem' }}
-                        />
-                        
-                      </div>
-                    )}
-                    
-                    <label className="rrg-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={showStats.avgRating}
-                        onChange={(e) => setShowStats({...showStats, avgRating: e.target.checked})}
-                        className="rrg-checkbox"
-                      />
-                      Avg Rating
-                    </label>
-                    
-                    <label className="rrg-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={showStats.topAuthor}
-                        onChange={(e) => setShowStats({...showStats, topAuthor: e.target.checked})}
-                        className="rrg-checkbox"
-                      />
-                      Top Author
-                    </label>
-                  </div>
-                </div>
+                <SummaryStatsToggles
+                  showStats={showStats}
+                  setShowStats={setShowStats}
+                  pagesPerHour={pagesPerHour}
+                  setPagesPerHour={setPagesPerHour}
+                />
               </div>
             )}
             
@@ -495,23 +478,43 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                   >
                     {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
                       <option key={year} value={year}>
-                        {getSeasonYearLabel(year)}
+                        {year}
                       </option>
                     ))}
                   </select>
                 </div>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <label className="rrg-label">Reading Goal (books)</label>
-                  <input
-                    type="number"
-                    value={readingGoal}
-                    onChange={(e) => setReadingGoal(parseInt(e.target.value) || 12)}
-                    className="rrg-input"
-                    min="1"
-                    max="1000"
-                  />
-                </div>
+
+                <SummaryStatsToggles
+                  showStats={showStats}
+                  setShowStats={setShowStats}
+                  pagesPerHour={pagesPerHour}
+                  setPagesPerHour={setPagesPerHour}
+                  showGoalControls
+                  showHighlightControls
+                  goalInput={
+                    <div style={{ }}>
+                      <label className="rrg-label" style={{ fontWeight: 400, fontSize: '0.9rem' }}>
+                        What was your reading goal for {selectedYear || new Date().getFullYear()}?
+                      </label>
+                      <input
+                        type="number"
+                        value={readingGoal === null ? '' : readingGoal}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          if (val === '') {
+                            setReadingGoal(null)
+                            return
+                          }
+                          const parsed = Math.max(1, Math.min(5000, parseInt(val, 10) || 1))
+                          setReadingGoal(parsed)
+                        }}
+                        className="rrg-input"
+                        min="1"
+                        max="5000"
+                      />
+                    </div>
+                  }
+                />
               </div>
             )}
             
@@ -546,6 +549,13 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                     </select>
                   </div>
                 </div>
+                
+                <SummaryStatsToggles
+                  showStats={showStats}
+                  setShowStats={setShowStats}
+                  pagesPerHour={pagesPerHour}
+                  setPagesPerHour={setPagesPerHour}
+                />
               </div>
             )}
             
@@ -645,6 +655,13 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                     </div>
                   </>
                 )}
+
+                <SummaryStatsToggles
+                  showStats={showStats}
+                  setShowStats={setShowStats}
+                  pagesPerHour={pagesPerHour}
+                  setPagesPerHour={setPagesPerHour}
+                />
               </div>
             )}
             
@@ -916,11 +933,11 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
             
             <div className="rrg-preview">
               {displayBooks.length > 0 ? (
-                <ReceiptWrapper 
+                <ReceiptWrapper
                   key={`${template}-${selectedSeason}-${selectedYear}-${selectedMonth}-${customSeasonName}-${customSeasonStart}-${customSeasonEnd}-${period}`}
-                  ref={receiptRef} 
-                  books={displayBooks} 
-                  username={username} 
+                  ref={receiptRef}
+                  books={displayBooks}
+                  username={username}
                   period={period}
                   template={template}
                   readingGoal={readingGoal}
@@ -939,52 +956,14 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                   No books match the selected time period. Try selecting "All Time" or add more books.
                 </div>
               )}
-              <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+              <div className="rrg-preview-actions">
                 <button
-                  onClick={() => setShowShareMenu((prev) => !prev)}
+                  onClick={downloadReceipt}
                   disabled={displayBooks.length === 0}
                   className="rrg-button secondary"
-                  style={{ width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem' }}
                 >
-                  <Share2 size={18} />
-                  Share / Save
+                  Save
                 </button>
-                {showShareMenu && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      right: 0,
-                      marginTop: '0.35rem',
-                      background: '#fffaf1',
-                      border: '1px solid #1f1307',
-                      borderRadius: '8px',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                      minWidth: '200px',
-                      zIndex: 20,
-                    }}
-                  >
-                    <button
-                      onClick={() => {
-                        setShowShareMenu(false)
-                        shareReceipt()
-                      }}
-                      className="rrg-share-item"
-                    >
-                      <Share2 size={16} />
-                      Share...
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowShareMenu(false)
-                        downloadReceipt()
-                      }}
-                      className="rrg-share-item"
-                    >
-                      <Download size={16} />
-                      Save as image
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>

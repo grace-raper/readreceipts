@@ -113,14 +113,14 @@ const Receipt = forwardRef(({ books, username, period }, ref) => {
         authorCounts[book.author] = (authorCounts[book.author] || 0) + 1
       }
     })
-    const topAuthor = Object.entries(authorCounts).sort((a, b) => b[1] - a[1])[0]
+    const topAuthorEntry = Object.entries(authorCounts).sort((a, b) => b[1] - a[1])[0]
 
     return {
       totalBooks: books.length,
       totalPages,
       totalHours,
       avgRating,
-      topAuthor: topAuthor ? `${topAuthor[0]} (${topAuthor[1]} books)` : 'N/A',
+      topAuthor: topAuthorEntry ? topAuthorEntry[0].toUpperCase() : 'N/A',
     }
   }
 
@@ -190,10 +190,10 @@ const Receipt = forwardRef(({ books, username, period }, ref) => {
           <span>AVG RATING:</span>
           <span style={{ fontWeight: 600 }}>{stats.avgRating}/5</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {/* <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span>TOP AUTHOR:</span>
-          <span style={{ fontWeight: 600, fontSize: '11px' }}>{stats.topAuthor}</span>
-        </div>
+          <span style={{ fontWeight: 600 }}>{stats.topAuthor}</span>
+        </div> */}
       </div>
 
       <div style={{ paddingTop: '0.9rem' }}>

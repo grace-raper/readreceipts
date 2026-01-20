@@ -14,11 +14,27 @@ const ReceiptWrapper = forwardRef(({
   shelfType = 'tbr',
   readingGoal = 12,
   showStats = {
+    statsSection: true,
     booksRead: true,
     totalPages: true,
     estHours: true,
     avgRating: true,
-    topAuthor: true
+    goalSection: true,
+    goalBooks: true,
+    goalBooksRead: true,
+    goalProgress: true,
+    highlightsSection: true,
+    highlightsAvgLength: true,
+    highlightsAvgRating: true,
+    highlightsFiveStar: true,
+    highlightsMostReadMonth: true,
+    highlightsShortest: true,
+    highlightsLongest: true,
+    tbrSection: true,
+    tbrBooks: true,
+    tbrAddedThisYear: true,
+    tbrOldest: true,
+    tbrNewest: true,
   },
   pagesPerHour = 30,
   numBooksToShow = 10,
@@ -145,7 +161,10 @@ const ReceiptWrapper = forwardRef(({
   }
 
   const calculateStats = () => {
-    const statsBooks = template === 'standard' ? visibleBooks.slice(0, numBooksToShow || visibleBooks.length) : visibleBooks
+    const statsBooks =
+      template === 'standard' || template === 'tbr'
+        ? visibleBooks.slice(0, numBooksToShow || visibleBooks.length)
+        : visibleBooks
     const totalPages = statsBooks.reduce((sum, book) => sum + (book.pages || 0), 0)
     const totalHours = Math.round((totalPages / pagesPerHour) * 10) / 10
     const booksWithRatings = statsBooks.filter((b) => b.rating > 0)
@@ -154,32 +173,44 @@ const ReceiptWrapper = forwardRef(({
         ? (booksWithRatings.reduce((sum, b) => sum + b.rating, 0) / booksWithRatings.length).toFixed(1)
         : 0
 
-    const authorCounts = {}
-    statsBooks.forEach((book) => {
-      if (book.author) {
-        authorCounts[book.author] = (authorCounts[book.author] || 0) + 1
-      }
-    })
-    const topAuthor = Object.entries(authorCounts).sort((a, b) => b[1] - a[1])[0]
+    const safeGoal = Math.max(1, readingGoal || 1)
 
     return {
       totalBooks: statsBooks.length,
       totalPages,
       totalHours,
       avgRating,
-      topAuthor: topAuthor ? `${topAuthor[0]} (${topAuthor[1]} books)` : 'N/A',
-      readingGoal,
+      readingGoal: safeGoal,
       pagesPerHour,
-      showStats
+      showStats: {
+        statsSection: showStats?.statsSection ?? true,
+        booksRead: showStats?.booksRead,
+        totalPages: showStats?.totalPages,
+        estHours: showStats?.estHours,
+        avgRating: showStats?.avgRating,
+        goalSection: showStats?.goalSection ?? true,
+        goalBooks: showStats?.goalBooks ?? true,
+        goalBooksRead: showStats?.goalBooksRead ?? true,
+        goalProgress: showStats?.goalProgress ?? true,
+        highlightsSection: showStats?.highlightsSection ?? true,
+        highlightsAvgLength: showStats?.highlightsAvgLength ?? true,
+        highlightsAvgRating: showStats?.highlightsAvgRating ?? true,
+        highlightsFiveStar: showStats?.highlightsFiveStar ?? true,
+        highlightsMostReadMonth: showStats?.highlightsMostReadMonth ?? true,
+        highlightsShortest: showStats?.highlightsShortest ?? true,
+        highlightsLongest: showStats?.highlightsLongest ?? true,
+      }
     }
   }
   
   // Calculate stats based on visible books
   const stats = calculateStats()
   
-  // Parent already applied template/period filters; only limit count for standard template.
+  // Parent already applied template/period filters; limit count for standard and tbr templates.
   const displayBooks =
-    template === 'standard' ? visibleBooks.slice(0, numBooksToShow) : visibleBooks
+    template === 'standard' || template === 'tbr'
+      ? visibleBooks.slice(0, numBooksToShow || visibleBooks.length)
+      : visibleBooks
     
   const orderId = Math.floor(Math.random() * 9999)
     .toString()
@@ -279,6 +310,7 @@ const ReceiptWrapper = forwardRef(({
     books,
     username,
     period,
+    template,
     stats,
     displayBooks,
     orderId,

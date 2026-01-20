@@ -29,6 +29,33 @@
   flex-direction: column;
 }
 
+.rrg-import-inner {
+  width: 100%;
+}
+
+.rrg-import-inner-buttons {
+  width: 100%;
+}
+
+.rrg-import-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.rrg-preview-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+  padding: 0 1rem;
+  width: 100%;
+}
+.rrg-preview-actions .rrg-button {
+  width: 100%;
+}
+
 .rrg-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -257,6 +284,37 @@
   .rrg-footer-content {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .rrg-import-inner {
+    padding: 0;
+    max-width: 90vw;
+    margin: 0 auto;
+  }
+  .rrg-import-actions {
+    padding: 1rem 0 1rem;
+    max-width: 90vw;
+    margin: 0 auto;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .rrg-import-actions button {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .rrg-preview-actions {
+    padding: 1rem 1rem 1rem;
+    max-width: 90vw;
+    margin: 0 auto;
+  }
+  .rrg-preview-actions .rrg-button {
+    width: 100%;
+  }
+  .rrg-customize {
+    padding: 1rem 1rem;
+    margin: 0 auto;
+    max-width: 90vw;
   }
 }
 

@@ -1,11 +1,22 @@
 import React from 'react'
 import '../Receipt.css'
+import BarcodeFooter from '../BarcodeFooter'
 
-const YearlyReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS' }, ref) => {
+const YearlyReceipt = React.forwardRef(({ books, username, period, template, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS', selectedYear }, ref) => {
   // Additional stats for yearly receipt
   const currentYear = new Date().getFullYear()
+  const displayYear = selectedYear || currentYear
   const booksWithRatings = books.filter(book => book.rating > 0)
   const fiveStarBooks = booksWithRatings.filter(book => Math.round(book.rating) === 5).length
+  const isYearTemplate = template === 'yearly'
+  const showStats = stats?.showStats || {
+    statsSection: true,
+    booksRead: true,
+    totalPages: true,
+    estHours: true,
+    avgRating: true,
+    topAuthor: true,
+  }
   
   // Calculate most-read month
   const monthCounts = {}
@@ -18,6 +29,7 @@ const YearlyReceipt = React.forwardRef(({ books, username, period, stats, displa
   })
   
   const mostReadMonth = Object.entries(monthCounts).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0]
+  const mostReadMonthLabel = (mostReadMonth[0] || 'N/A').toString().toUpperCase()
   
   // Find shortest and longest books
   const booksWithPages = books.filter(book => book.pages > 0)
@@ -26,11 +38,10 @@ const YearlyReceipt = React.forwardRef(({ books, username, period, stats, displa
   const longestBook = booksWithPages.length > 0 ? 
     Math.max(...booksWithPages.map(book => book.pages)) : 'N/A'
 
-  // Calculate reading goal progress (mock - would be from user input)
-  const goalBooks = 50
+  // Calculate reading goal progress using provided stats
+  const goalBooks = stats.readingGoal || 1
   const booksRead = books.length
   const progress = Math.round((booksRead / goalBooks) * 100)
-  const booksBehind = goalBooks - booksRead > 0 ? goalBooks - booksRead : 0
 
   return (
     <div ref={ref} className="rrg-receipt">
@@ -77,101 +88,135 @@ const YearlyReceipt = React.forwardRef(({ books, username, period, stats, displa
           ))}
       </div>
       
-      <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>BOOKS READ:</span>
-          <span style={{ fontWeight: 600 }}>{stats.totalBooks}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>PAGES READ:</span>
-          <span style={{ fontWeight: 600 }}>{stats.totalPages.toLocaleString()}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>AVG BOOK LENGTH:</span>
-          <span style={{ fontWeight: 600 }}>{Math.round(stats.totalPages / stats.totalBooks) || 0} pages</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>5★ READS:</span>
-          <span style={{ fontWeight: 600 }}>{fiveStarBooks}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>AVG RATING:</span>
-          <span style={{ fontWeight: 600 }}>{stats.avgRating}/5</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>MOST-READ MONTH:</span>
-          <span style={{ fontWeight: 600 }}>{mostReadMonth[0]} ({mostReadMonth[1]} books)</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>SHORTEST BOOK:</span>
-          <span style={{ fontWeight: 600 }}>{shortestBook} pages</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>LONGEST BOOK:</span>
-          <span style={{ fontWeight: 600 }}>{longestBook} pages</span>
+      <div style={{ paddingTop: '0.9rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700 }}>
+          <span>TOTAL</span>
+          <span>{formatPrice(stats.totalPages)}</span>
         </div>
       </div>
 
-      <div style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
-        <div style={{ textAlign: 'center', fontWeight: 600, marginBottom: '0.5rem' }}>
-          {currentYear} READING GOAL
+      {showStats.statsSection !== false && (
+        <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+          {showStats.booksRead && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>BOOKS READ:</span>
+              <span style={{ fontWeight: 600 }}>{stats.totalBooks}</span>
+            </div>
+          )}
+          {showStats.avgRating && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>AVG RATING:</span>
+              <span style={{ fontWeight: 600 }}>{stats.avgRating}/5</span>
+            </div>
+          )}
+          {showStats.totalPages && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>PAGES READ:</span>
+              <span style={{ fontWeight: 600 }}>{stats.totalPages.toLocaleString()}</span>
+            </div>
+          )}
+          {showStats.estHours && (
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>EST. READING TIME:</span>
+              <span style={{ fontWeight: 600 }}>{stats.totalHours} hrs</span>
+            </div>
+          )}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>GOAL BOOKS:</span>
-          <span style={{ fontWeight: 600 }}>{goalBooks}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>BOOKS READ:</span>
-          <span style={{ fontWeight: 600 }}>{booksRead}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-          <span>PROGRESS:</span>
-          <span style={{ fontWeight: 600 }}>{progress}%</span>
-        </div>
-        
-        {/* Progress bar */}
-        <div style={{ width: '100%', height: '8px', backgroundColor: '#e5e5e5', marginBottom: '0.5rem' }}>
-          <div 
-            style={{ 
-              width: `${progress > 100 ? 100 : progress}%`, 
-              height: '100%', 
-              backgroundColor: '#16110d' 
-            }} 
-          />
-        </div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>{booksBehind > 0 ? 'BOOKS BEHIND PACE:' : 'VICTORY MARGIN:'}</span>
-          <span style={{ fontWeight: 600 }}>
-            {booksBehind > 0 ? booksBehind : `+${booksRead - goalBooks} books`}
-          </span>
-        </div>
-      </div>
+      )}
 
-      <div
-        style={{
-          borderTop: '1px solid rgba(0, 0, 0, 0.2)',
-          marginTop: '0.8rem',
-          paddingTop: '1rem',
-          textAlign: 'center',
-        }}
-      >
-        <div className="rrg-chip">EVERY PAGE IS A JOURNEY</div>
-        <p style={{ margin: '0.6rem 0 0', fontSize: '11px', opacity: 0.7 }}>{currentYear} SUMMARY</p>
-      </div>
+      {isYearTemplate && showStats.goalSection !== false && (
+        <div style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+          <div style={{ textAlign: 'left', fontWeight: 600, marginBottom: '0.5rem', fontSize: '15px' }}>
+            {displayYear} READING GOAL
+          </div>
+          {showStats.goalBooks !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>GOAL BOOKS:</span>
+              <span style={{ fontWeight: 600 }}>{goalBooks}</span>
+            </div>
+          )}
+          {showStats.goalBooksRead !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>BOOKS READ:</span>
+              <span style={{ fontWeight: 600 }}>{booksRead}</span>
+            </div>
+          )}
+          {showStats.goalProgress !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>PROGRESS:</span>
+              <span style={{ fontWeight: 600 }}>{progress}%</span>
+            </div>
+          )}
+          
+          {/* Progress bar */}
+          {showStats.goalProgress !== false && (
+            <div style={{ width: '100%', height: '8px', backgroundColor: '#e5e5e5', marginBottom: '0.5rem' }}>
+              <div 
+                style={{ 
+                  width: `${progress > 100 ? 100 : progress}%`, 
+                  height: '100%', 
+                  backgroundColor: '#16110d' 
+                }} 
+              />
+            </div>
+          )}
+        </div>
+      )}
 
-      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-        <p style={{ margin: 0, fontSize: '14px' }}>HAPPY READING!</p>
-      </div>
+      {isYearTemplate && showStats.highlightsSection !== false && (
+        <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+          <div style={{ textAlign: 'left', fontWeight: 600, marginBottom: '0.5rem', fontSize: '15px' }}>
+            {displayYear} HIGHLIGHTS
+          </div>
+          {showStats.highlightsAvgLength !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>AVG BOOK LENGTH:</span>
+              <span style={{ fontWeight: 600 }}>{Math.round(stats.totalPages / stats.totalBooks) || 0} pages</span>
+            </div>
+          )}
+          {showStats.highlightsAvgRating !== false && showStats.avgRating !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>AVG RATING:</span>
+              <span style={{ fontWeight: 600 }}>{stats.avgRating}/5</span>
+            </div>
+          )}
+          {showStats.highlightsFiveStar !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>5★ READS:</span>
+              <span style={{ fontWeight: 600 }}>{fiveStarBooks}</span>
+            </div>
+          )}
+          {showStats.highlightsMostReadMonth !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>MOST-READ MONTH:</span>
+              <span style={{ fontWeight: 600 }}>{mostReadMonthLabel} ({mostReadMonth[1]} BOOKS)</span>
+            </div>
+          )}
+          {showStats.highlightsShortest !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>SHORTEST BOOK:</span>
+              <span style={{ fontWeight: 600 }}>{shortestBook} PAGES</span>
+            </div>
+          )}
+          {showStats.highlightsLongest !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>LONGEST BOOK:</span>
+              <span style={{ fontWeight: 600 }}>{longestBook} PAGES</span>
+            </div>
+          )}
+          {showStats.topAuthor && (
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>TOP AUTHOR:</span>
+              <span style={{ fontWeight: 600 }}>{stats.topAuthor}</span>
+            </div>
+          )}
+        </div>
+      )}
 
-      {barcode}
-
-      <div style={{ textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
-        <p style={{ margin: 0 }}>readingreceipt.app</p>
-      </div>
+      <BarcodeFooter barcode={barcode} marginTop="0.35rem" />
     </div>
   )
-})
+}
 
 YearlyReceipt.displayName = 'YearlyReceipt'
 

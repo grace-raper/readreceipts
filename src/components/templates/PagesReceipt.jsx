@@ -64,6 +64,13 @@ const PagesReceipt = React.forwardRef(({ books, username, period, stats, display
           ))}
       </div>
       
+      <div style={{ paddingTop: '0.9rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700 }}>
+          <span>TOTAL PAGES</span>
+          <span>{totalPages.toLocaleString()}</span>
+        </div>
+      </div>
+
       <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
           <span>TOTAL PAGES READ:</span>
@@ -109,13 +116,6 @@ const PagesReceipt = React.forwardRef(({ books, username, period, stats, display
             </div>
           ))
         }
-      </div>
-
-      <div style={{ paddingTop: '0.9rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700 }}>
-          <span>TOTAL PAGES</span>
-          <span>{totalPages.toLocaleString()}</span>
-        </div>
       </div>
 
       <div

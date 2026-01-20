@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { Upload, BookOpen, BookMarked, BookX } from 'lucide-react'
+import { Upload, BookOpen, BookMarked, BookX, ArrowRight } from 'lucide-react'
 import Papa from 'papaparse'
 import '../ReadingReceiptGenerator.css'
 
@@ -7,6 +7,7 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
   const fileInputRef = useRef(null)
   const [uploadError, setUploadError] = useState('')
   const [uploadSuccess, setUploadSuccess] = useState('')
+  const [parsedData, setParsedData] = useState(null)
   const [shelfCounts, setShelfCounts] = useState({
     read: 0,
     currentlyReading: 0,
@@ -90,22 +91,14 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
 
     setUploadError('')
     setUploadSuccess('')
+    setParsedData(null)
 
     try {
       const { books, username, shelfCounts } = await parseCsv(file)
       setUploadSuccess(
-        <>
-          <div>✓ Successfully loaded your Goodreads library</div>
-          <div className="shelf-counts">
-            <div><BookOpen size={14} /> {shelfCounts.read} read</div>
-            <div><BookMarked size={14} /> {shelfCounts.currentlyReading} currently reading</div>
-            <div><BookX size={14} /> {shelfCounts.toRead} to read</div>
-          </div>
-        </>
+        `✓ Successfully parsed file — ${shelfCounts.read || 0} read; ${shelfCounts.currentlyReading || 0} currently reading; ${shelfCounts.toRead || 0} to-read.`
       )
-      setTimeout(() => {
-        onImportComplete(books, username, shelfCounts)
-      }, 1200)
+      setParsedData({ books, username, shelfCounts })
     } catch (err) {
       setUploadError(err.message)
     }
@@ -117,9 +110,15 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
     }
   }
 
+  const handleCreateReceipt = () => {
+    if (!parsedData) return
+    onImportComplete(parsedData.books, parsedData.username, parsedData.shelfCounts)
+  }
+
   return (
     <div className="rrg-page rrg-page-compact">
       <div className="rrg-container" style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <div className="rrg-import-inner">
         <div className="rrg-card">
           <h2>How to get your Goodreads Data: </h2>
           <p style={{ margin: '0 0 0.75rem', lineHeight: 1.6 }}>
@@ -167,12 +166,21 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
               {uploadSuccess}
             </div>
           )}
-        </div>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+        </div>
+        <div className="rrg-import-actions">
           <button className="rrg-button secondary" onClick={() => onImportComplete(null, null)}>
             ← Back to Home
           </button>
+          {parsedData && (
+            <button className="rrg-button" onClick={handleCreateReceipt}>
+              <>
+                Create receipt
+                <ArrowRight size={16} />
+              </>
+            </button>
+          )}
+        </div>
         </div>
       </div>
     </div>

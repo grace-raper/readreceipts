@@ -1,5 +1,6 @@
 import React from 'react'
 import '../Receipt.css'
+import BarcodeFooter from '../BarcodeFooter'
 
 const StandardReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS' }, ref) => {
   return (
@@ -49,39 +50,6 @@ const StandardReceipt = React.forwardRef(({ books, username, period, stats, disp
           ))}
       </div>
       
-      <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
-        {stats.showStats?.booksRead !== false && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-            <span>BOOKS READ:</span>
-            <span style={{ fontWeight: 600 }}>{stats.totalBooks}</span>
-          </div>
-        )}
-        {stats.showStats?.totalPages !== false && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-            <span>TOTAL PAGES:</span>
-            <span style={{ fontWeight: 600 }}>{stats.totalPages.toLocaleString()}</span>
-          </div>
-        )}
-        {stats.showStats?.estHours !== false && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-            <span>EST. READING TIME:</span>
-            <span style={{ fontWeight: 600 }}>{stats.totalHours} HOURS</span>
-          </div>
-        )}
-        {stats.showStats?.avgRating !== false && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-            <span>AVG RATING:</span>
-            <span style={{ fontWeight: 600 }}>{stats.avgRating}/5</span>
-          </div>
-        )}
-        {stats.showStats?.topAuthor !== false && (
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>TOP AUTHOR:</span>
-            <span style={{ fontWeight: 600, fontSize: '11px' }}>{stats.topAuthor}</span>
-          </div>
-        )}
-      </div>
-
       <div style={{ paddingTop: '0.9rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700 }}>
           <span>TOTAL</span>
@@ -89,27 +57,36 @@ const StandardReceipt = React.forwardRef(({ books, username, period, stats, disp
         </div>
       </div>
 
-      <div
-        style={{
-          borderTop: '1px solid rgba(0, 0, 0, 0.2)',
-          marginTop: '0.8rem',
-          paddingTop: '1rem',
-          textAlign: 'center',
-        }}
-      >
-        <div className="rrg-chip">EVERY PAGE IS A PENNY</div>
-        <p style={{ margin: '0.6rem 0 0', fontSize: '11px', opacity: 0.7 }}>{getPeriodLabel()}</p>
-      </div>
+      {stats.showStats?.statsSection !== false && (
+        <div style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+          {stats.showStats?.booksRead !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>BOOKS READ:</span>
+              <span style={{ fontWeight: 600 }}>{stats.totalBooks}</span>
+            </div>
+          )}
+          {stats.showStats?.avgRating !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>AVG RATING:</span>
+              <span style={{ fontWeight: 600 }}>{stats.avgRating}/5</span>
+            </div>
+          )}
+          {stats.showStats?.totalPages !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+              <span>TOTAL PAGES:</span>
+              <span style={{ fontWeight: 600 }}>{stats.totalPages.toLocaleString()}</span>
+            </div>
+          )}
+          {stats.showStats?.estHours !== false && (
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>EST. READING TIME:</span>
+              <span style={{ fontWeight: 600 }}>{stats.totalHours} HOURS</span>
+            </div>
+          )}
+        </div>
+      )}
 
-      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-        <p style={{ margin: 0, fontSize: '14px' }}>THANK YOU FOR VISITING!</p>
-      </div>
-
-      {barcode}
-
-      <div style={{ textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
-        <p style={{ margin: 0 }}>readingreceipt.app</p>
-      </div>
+      <BarcodeFooter barcode={barcode} />
     </div>
   )
 })

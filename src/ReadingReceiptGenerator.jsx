@@ -159,14 +159,15 @@ const ReadingReceiptGenerator = ({
         authorCounts[book.author] = (authorCounts[book.author] || 0) + 1
       }
     })
-    const topAuthor = Object.entries(authorCounts).sort((a, b) => b[1] - a[1])[0]
+    const topAuthorEntry = Object.entries(authorCounts).sort((a, b) => b[1] - a[1])[0]
+    const topAuthorName = topAuthorEntry ? topAuthorEntry[0].toUpperCase() : 'N/A'
 
     return {
       totalBooks: filteredBooks.length,
       totalPages,
       totalHours,
       avgRating,
-      topAuthor: topAuthor ? `${topAuthor[0]} (${topAuthor[1]} books)` : 'N/A',
+      topAuthor: topAuthorName,
     }
   }
 

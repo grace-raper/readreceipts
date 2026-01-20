@@ -1,7 +1,7 @@
 import React from 'react'
 import '../Receipt.css'
 
-const ShelfReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, shelfType = 'tbr' }, ref) => {
+const ShelfReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, shelfType = 'tbr', showStats = {} }, ref) => {
   // Shelf-based receipt (TBR, Currently Reading, DNF)
   const currentYear = new Date().getFullYear()
   const now = new Date()
@@ -53,10 +53,10 @@ const ShelfReceipt = React.forwardRef(({ books, username, period, stats, display
     }).length
     
     shelfStats = [
-      { label: 'BOOKS ON TBR:', value: books.length },
-      { label: 'ADDED THIS YEAR:', value: addedThisYear },
-      { label: 'OLDEST TBR BOOK:', value: oldestBook?.dateAdded ? new Date(oldestBook.dateAdded).getFullYear() : 'N/A' },
-      { label: 'NEWEST ADDITION:', value: formatTimeAgo(books[0]?.dateAdded) }
+      { key: 'tbrBooks', label: 'BOOKS ON TBR:', value: books.length },
+      { key: 'tbrAddedThisYear', label: 'ADDED THIS YEAR:', value: addedThisYear },
+      { key: 'tbrOldest', label: 'OLDEST TBR BOOK:', value: oldestBook?.dateAdded ? new Date(oldestBook.dateAdded).getFullYear() : 'N/A' },
+      { key: 'tbrNewest', label: 'NEWEST ADDITION:', value: formatTimeAgo(books[0]?.dateAdded) }
     ]
   } else if (shelfType === 'current') {
     // Currently Reading stats
@@ -142,21 +142,25 @@ const ShelfReceipt = React.forwardRef(({ books, username, period, stats, display
           ))}
       </div>
       
-      <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
-        {shelfStats.map((stat, index) => (
-          <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-            <span>{stat.label}</span>
-            <span style={{ fontWeight: 600 }}>{stat.value}</span>
-          </div>
-        ))}
-      </div>
-
       <div style={{ paddingTop: '0.9rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 700 }}>
-          <span>TOTAL BOOKS</span>
-          <span>{books.length}</span>
+          <span>TOTAL</span>
+          <span>{formatPrice(stats.totalPages)}</span>
         </div>
       </div>
+
+      {shelfType !== 'tbr' || showStats?.tbrSection !== false ? (
+        <div className="rrg-dashed" style={{ paddingTop: '0.9rem', paddingBottom: '0.9rem' }}>
+          {shelfStats
+            .filter((stat) => shelfType !== 'tbr' || showStats?.[stat.key] !== false)
+            .map((stat, index) => (
+              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                <span>{stat.label}</span>
+                <span style={{ fontWeight: 600 }}>{stat.value}</span>
+              </div>
+            ))}
+        </div>
+      ) : null}
 
       <div
         style={{
