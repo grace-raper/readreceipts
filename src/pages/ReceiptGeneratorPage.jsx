@@ -12,6 +12,7 @@ import ManualBookForm from '../components/receipt-generator/ManualBookForm'
 import { getSeasonYearLabel } from '../components/receipt-generator/utils/seasonUtils'
 import { filterBooksForTemplate } from '../components/receipt-generator/utils/bookFilters'
 import { downloadReceipt as downloadReceiptUtil, shareReceipt as shareReceiptUtil } from '../components/receipt-generator/utils/receiptUtils'
+import { trackTemplateSelection, trackReceiptDownload, trackBookAction, trackEvent } from '../components/PostHogProvider'
 import '../ReadingReceiptGenerator.css'
 import '../ReceiptTemplates.css'
 
@@ -21,6 +22,11 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   const [period, setPeriod] = useState('all')
   const [template, setTemplate] = useState('standard')
   const [readingGoal, setReadingGoal] = useState(12)
+  
+  // Template engagement tracking
+  const templateStartTimeRef = useRef(Date.now())
+  const currentTemplateRef = useRef('standard')
+  const templateInteractionsRef = useRef(0)
   const today = new Date()
   const lastMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1)
   const [selectedYear, setSelectedYear] = useState(lastMonthDate.getFullYear())
@@ -147,6 +153,41 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
     await shareReceiptUtil(receiptRef, getPeriodLabel, downloadReceipt)
   }
 
+  // Track time spent on each template
+  useEffect(() => {
+    // When template changes, track time spent on previous template
+    if (currentTemplateRef.current !== template) {
+      const timeSpent = Math.round((Date.now() - templateStartTimeRef.current) / 1000) // seconds
+      
+      trackEvent('template_engagement', {
+        template_type: currentTemplateRef.current,
+        time_spent_seconds: timeSpent,
+        interactions_count: templateInteractionsRef.current,
+        switched_to: template
+      })
+      
+      // Reset for new template
+      templateStartTimeRef.current = Date.now()
+      currentTemplateRef.current = template
+      templateInteractionsRef.current = 0
+    }
+  }, [template])
+
+  // Track when user leaves page (final template engagement)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const timeSpent = Math.round((Date.now() - templateStartTimeRef.current) / 1000)
+      trackEvent('template_engagement_final', {
+        template_type: currentTemplateRef.current,
+        time_spent_seconds: timeSpent,
+        interactions_count: templateInteractionsRef.current
+      })
+    }
+    
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [])
+
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
     if (showAllBooksModal) {
@@ -159,6 +200,11 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
     }
   }, [showAllBooksModal])
 
+  // Helper to track interactions on current template
+  const trackInteraction = () => {
+    templateInteractionsRef.current += 1
+  }
+
   const getSeasonYearLabelWrapper = (year, season = selectedSeason) => {
     return getSeasonYearLabel(year, season)
   }
@@ -169,14 +215,20 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
       return
     }
 
-    setBooks([
-      ...books,
-      {
-        ...manualBook,
-        pages: parseInt(manualBook.pages) || 0,
-        rating: parseFloat(manualBook.rating) || 0,
-      },
-    ])
+    const newBook = {
+      ...manualBook,
+      pages: parseInt(manualBook.pages) || 0,
+      rating: parseFloat(manualBook.rating) || 0,
+    }
+
+    setBooks([...books, newBook])
+
+    trackBookAction('manual_add', {
+      has_pages: !!newBook.pages,
+      has_rating: !!newBook.rating,
+      has_date_finished: !!newBook.dateFinished,
+      has_date_started: !!newBook.dateStarted
+    })
 
     setManualBook({
       title: '',
@@ -200,8 +252,9 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   const saveEditedBook = () => {
     if (!editingBook) return
     
-    const updatedBooks = [...books]
-    updatedBooks[editingBook.index] = {
+    const originalBook = books[editingBook.index]
+    
+    const updatedBook = {
       title: editingBook.title,
       author: editingBook.author,
       pages: parseInt(editingBook.pages) || 0,
@@ -211,12 +264,59 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
       hidden: editingBook.hidden || false
     }
     
+    const updatedBooks = [...books]
+    updatedBooks[editingBook.index] = updatedBook
+    
     setBooks(updatedBooks)
+    
+    // Track what fields were modified (anonymized - no book titles/authors)
+    const modifications = {
+      title_modified: originalBook.title !== updatedBook.title,
+      author_modified: originalBook.author !== updatedBook.author,
+      pages_modified: originalBook.pages !== updatedBook.pages,
+      rating_modified: originalBook.rating !== updatedBook.rating,
+      date_finished_modified: originalBook.dateFinished !== updatedBook.dateFinished,
+      date_started_modified: originalBook.dateStarted !== updatedBook.dateStarted,
+      hidden_modified: (originalBook.hidden || false) !== updatedBook.hidden,
+      
+      // Include new values for numeric fields (safe to track)
+      new_pages: updatedBook.pages || null,
+      previous_pages: originalBook.pages || null,
+      new_rating: updatedBook.rating || null,
+      previous_rating: originalBook.rating || null,
+      
+      // Track if dates were added/removed
+      date_finished_added: !originalBook.dateFinished && !!updatedBook.dateFinished,
+      date_finished_removed: !!originalBook.dateFinished && !updatedBook.dateFinished,
+      date_started_added: !originalBook.dateStarted && !!updatedBook.dateStarted,
+      date_started_removed: !!originalBook.dateStarted && !updatedBook.dateStarted,
+      
+      // Summary
+      fields_modified_count: [
+        originalBook.title !== updatedBook.title,
+        originalBook.author !== updatedBook.author,
+        originalBook.pages !== updatedBook.pages,
+        originalBook.rating !== updatedBook.rating,
+        originalBook.dateFinished !== updatedBook.dateFinished,
+        originalBook.dateStarted !== updatedBook.dateStarted,
+        (originalBook.hidden || false) !== updatedBook.hidden
+      ].filter(Boolean).length,
+      
+      was_hidden: updatedBook.hidden,
+      has_pages: !!updatedBook.pages,
+      has_rating: !!updatedBook.rating
+    }
+    
+    trackBookAction('edit', modifications)
+    
     setEditingBook(null)
   }
   
   const removeBook = (index) => {
     if (window.confirm('Are you sure you want to remove this book?')) {
+      trackBookAction('remove', {
+        book_count_after: books.length - 1
+      })
       setBooks(books.filter((_, i) => i !== index))
     }
   }
@@ -233,8 +333,71 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   }
 
   const downloadReceipt = async () => {
+    // Calculate time spent on this template before download
+    const timeSpentOnTemplate = Math.round((Date.now() - templateStartTimeRef.current) / 1000)
+    
+    // Comprehensive receipt settings for analytics
+    const receiptSettings = {
+      // Template identification
+      template_type: template,
+      
+      // Book counts
+      num_books_shown: effectiveNumBooksToShow,
+      total_qualifying_books: displayBooks.length,
+      total_books: books.length,
+      total_read: shelfCounts.read,
+      total_currently_reading: shelfCounts.currentlyReading,
+      total_tbr: shelfCounts.toRead,
+      
+      // Time period settings
+      selected_year: selectedYear,
+      selected_month: selectedMonth,
+      selected_season: selectedSeason,
+      custom_season_name: customSeasonName || null,
+      custom_season_start: customSeasonStart || null,
+      custom_season_end: customSeasonEnd || null,
+      
+      // Customization settings
+      reading_goal: readingGoal,
+      pages_per_hour: pagesPerHour,
+      num_books_to_show_setting: numBooksToShow,
+      
+      // Stats toggles (detailed breakdown)
+      stats_section_enabled: showStats.statsSection,
+      books_read_stat: showStats.booksRead,
+      total_pages_stat: showStats.totalPages,
+      est_hours_stat: showStats.estHours,
+      avg_rating_stat: showStats.avgRating,
+      goal_section_enabled: showStats.goalSection,
+      goal_books_stat: showStats.goalBooks,
+      goal_books_read_stat: showStats.goalBooksRead,
+      goal_progress_stat: showStats.goalProgress,
+      highlights_section_enabled: showStats.highlightsSection,
+      highlights_avg_length: showStats.highlightsAvgLength,
+      highlights_avg_rating: showStats.highlightsAvgRating,
+      highlights_five_star: showStats.highlightsFiveStar,
+      highlights_most_read_month: showStats.highlightsMostReadMonth,
+      highlights_shortest: showStats.highlightsShortest,
+      highlights_longest: showStats.highlightsLongest,
+      tbr_section_enabled: showStats.tbrSection,
+      tbr_books_stat: showStats.tbrBooks,
+      tbr_added_this_year: showStats.tbrAddedThisYear,
+      tbr_oldest: showStats.tbrOldest,
+      tbr_newest: showStats.tbrNewest,
+      
+      // Engagement metrics
+      time_spent_on_template_seconds: timeSpentOnTemplate,
+      interactions_on_template: templateInteractionsRef.current,
+      
+      // Summary counts
+      total_stats_enabled: Object.entries(showStats).filter(([k, v]) => v).length,
+      stats_enabled_list: Object.entries(showStats).filter(([k, v]) => v).map(([k]) => k)
+    }
+    
+    trackReceiptDownload(template, receiptSettings)
+    
     await downloadReceiptUtil(receiptRef, getPeriodLabel)
-    // Show thank you modal after successful download
+    
     setTimeout(() => {
       setShowThankYouModal(true)
     }, 500)
@@ -293,6 +456,7 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
               customSeasonEnd={customSeasonEnd}
               setCustomSeasonEnd={setCustomSeasonEnd}
               getSeasonYearLabel={getSeasonYearLabelWrapper}
+              onInteraction={trackInteraction}
             />
             
             {/* Remove old seasonal template code below */}

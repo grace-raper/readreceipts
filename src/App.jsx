@@ -9,6 +9,7 @@ import CookiePolicyPage from './pages/CookiePolicyPage'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import sampleBooks from './sampleBooks'
+import { trackPageView, trackNavigation } from './components/PostHogProvider'
 
 const STORAGE_KEY = 'readReceiptsData'
 
@@ -87,7 +88,14 @@ const App = () => {
     if (window.location.pathname !== newPath) {
       window.history.pushState({}, '', newPath)
     }
-  }, [stage])
+    
+    // Track page view
+    trackPageView(stage, {
+      path: newPath,
+      has_books: books.length > 0,
+      book_count: books.length
+    })
+  }, [stage, books.length])
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -99,6 +107,7 @@ const App = () => {
   }, [])
 
   const handleNavigate = (destination) => {
+    trackNavigation(stage, destination)
     setStage(destination)
   }
 
@@ -109,8 +118,10 @@ const App = () => {
       if (importedShelfCounts) {
         setShelfCounts(importedShelfCounts)
       }
+      trackNavigation('goodreads', 'receipt')
       setStage('receipt')
     } else {
+      trackNavigation('goodreads', 'welcome')
       setStage('welcome')
     }
   }

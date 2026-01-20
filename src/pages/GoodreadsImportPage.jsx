@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react'
 import { Upload, BookOpen, BookMarked, BookX, ArrowRight } from 'lucide-react'
 import Papa from 'papaparse'
 import '../ReadingReceiptGenerator.css'
+import { trackImport, trackEvent } from '../components/PostHogProvider'
 
 const GoodreadsImportPage = ({ onImportComplete }) => {
   const fileInputRef = useRef(null)
@@ -93,14 +94,25 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
     setUploadSuccess('')
     setParsedData(null)
 
+    trackEvent('csv_upload_attempted', {
+      file_name: file.name,
+      file_size: file.size
+    })
+
     try {
       const { books, username, shelfCounts } = await parseCsv(file)
       setUploadSuccess(
         `✓ Successfully parsed file — ${shelfCounts.read || 0} read; ${shelfCounts.currentlyReading || 0} currently reading; ${shelfCounts.toRead || 0} to-read.`
       )
       setParsedData({ books, username, shelfCounts })
+      
+      trackImport('goodreads', books.length, shelfCounts)
     } catch (err) {
       setUploadError(err.message)
+      trackEvent('csv_upload_failed', {
+        error: err.message,
+        file_name: file.name
+      })
     }
   }
 
@@ -112,6 +124,12 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
 
   const handleCreateReceipt = () => {
     if (!parsedData) return
+    trackEvent('create_receipt_clicked', {
+      total_books: parsedData.books.length,
+      read_books: parsedData.shelfCounts.read,
+      currently_reading: parsedData.shelfCounts.currentlyReading,
+      to_read: parsedData.shelfCounts.toRead
+    })
     onImportComplete(parsedData.books, parsedData.username, parsedData.shelfCounts)
   }
 

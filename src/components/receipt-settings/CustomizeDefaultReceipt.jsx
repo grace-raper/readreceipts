@@ -1,5 +1,6 @@
 import React from 'react'
 import SummaryStatsToggles from './SummaryStatsToggles'
+import { trackSettingChange } from '../PostHogProvider'
 
 const CustomizeDefaultReceipt = ({ 
   numBooksToShow, 
@@ -7,8 +8,18 @@ const CustomizeDefaultReceipt = ({
   showStats,
   setShowStats,
   pagesPerHour,
-  setPagesPerHour
+  setPagesPerHour,
+  onInteraction
 }) => {
+  const handleNumBooksChange = (newValue) => {
+    trackSettingChange('num_books_to_show', newValue, {
+      template: 'default',
+      previous_value: numBooksToShow
+    })
+    onInteraction?.()
+    setNumBooksToShow(newValue)
+  }
+
   return (
     <div className="rrg-settings-section">
       <div style={{ marginBottom: '1rem' }}>
@@ -18,9 +29,9 @@ const CustomizeDefaultReceipt = ({
           value={numBooksToShow === null ? '' : numBooksToShow}
           onChange={(e) => {
             const val = e.target.value
-            if (val === '') return setNumBooksToShow(null)
+            if (val === '') return handleNumBooksChange(null)
             const parsed = Math.max(1, Math.min(50, parseInt(val, 10) || 1))
-            setNumBooksToShow(parsed)
+            handleNumBooksChange(parsed)
           }}
           className="rrg-input"
           max="50"

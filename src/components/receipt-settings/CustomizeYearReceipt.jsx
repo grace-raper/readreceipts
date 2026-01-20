@@ -1,5 +1,6 @@
 import React from 'react'
 import SummaryStatsToggles from './SummaryStatsToggles'
+import { trackSettingChange } from '../PostHogProvider'
 
 const CustomizeYearReceipt = ({ 
   selectedYear,
@@ -9,15 +10,35 @@ const CustomizeYearReceipt = ({
   showStats,
   setShowStats,
   pagesPerHour,
-  setPagesPerHour
+  setPagesPerHour,
+  onInteraction
 }) => {
+  const handleYearChange = (year) => {
+    trackSettingChange('selected_year', year, {
+      template: 'yearly',
+      previous_value: selectedYear
+    })
+    onInteraction?.()
+    setSelectedYear(year)
+  }
+
+  const handleReadingGoalChange = (goal) => {
+    trackSettingChange('reading_goal', goal, {
+      template: 'yearly',
+      year: selectedYear,
+      previous_value: readingGoal
+    })
+    onInteraction?.()
+    setReadingGoal(goal)
+  }
+
   return (
     <div className="rrg-settings-section">
       <div style={{ marginBottom: '1rem' }}>
         <label className="rrg-label">Year</label>
         <select 
           value={selectedYear} 
-          onChange={(e) => setSelectedYear(parseInt(e.target.value))} 
+          onChange={(e) => handleYearChange(parseInt(e.target.value))} 
           className="rrg-select"
         >
           {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
@@ -46,11 +67,11 @@ const CustomizeYearReceipt = ({
               onChange={(e) => {
                 const val = e.target.value
                 if (val === '') {
-                  setReadingGoal(null)
+                  handleReadingGoalChange(null)
                   return
                 }
                 const parsed = Math.max(1, Math.min(5000, parseInt(val, 10) || 1))
-                setReadingGoal(parsed)
+                handleReadingGoalChange(parsed)
               }}
               className="rrg-input"
               min="1"

@@ -1,5 +1,6 @@
 import React from 'react'
 import SummaryStatsToggles from './SummaryStatsToggles'
+import { trackSettingChange } from '../PostHogProvider'
 
 const CustomizeMonthReceipt = ({ 
   selectedYear,
@@ -9,12 +10,35 @@ const CustomizeMonthReceipt = ({
   showStats,
   setShowStats,
   pagesPerHour,
-  setPagesPerHour
+  setPagesPerHour,
+  onInteraction
 }) => {
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ]
+
+  const handleMonthChange = (month) => {
+    trackSettingChange('selected_month', month, {
+      template: 'monthly',
+      month_name: months[month],
+      year: selectedYear,
+      previous_value: selectedMonth,
+      previous_month_name: months[selectedMonth]
+    })
+    onInteraction?.()
+    setSelectedMonth(month)
+  }
+
+  const handleYearChange = (year) => {
+    trackSettingChange('selected_year', year, {
+      template: 'monthly',
+      month: selectedMonth,
+      previous_value: selectedYear
+    })
+    onInteraction?.()
+    setSelectedYear(year)
+  }
 
   return (
     <div className="rrg-settings-section">
@@ -23,7 +47,7 @@ const CustomizeMonthReceipt = ({
           <label className="rrg-label">Month</label>
           <select 
             value={selectedMonth} 
-            onChange={(e) => setSelectedMonth(parseInt(e.target.value))} 
+            onChange={(e) => handleMonthChange(parseInt(e.target.value))} 
             className="rrg-select"
           >
             {months.map((month, index) => (
@@ -37,7 +61,7 @@ const CustomizeMonthReceipt = ({
           <label className="rrg-label">Year</label>
           <select 
             value={selectedYear} 
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))} 
+            onChange={(e) => handleYearChange(parseInt(e.target.value))} 
             className="rrg-select"
           >
             {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (

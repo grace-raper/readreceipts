@@ -2,8 +2,16 @@ import React from 'react'
 import DefaultReceipt from '../components/templates/DefaultReceipt'
 import sampleBooks from '../sampleBooks'
 import '../ReadingReceiptGenerator.css'
+import { trackEvent } from '../components/PostHogProvider'
 
 const WelcomePage = ({ onNavigate }) => {
+  const handleImportClick = (source) => {
+    trackEvent('import_button_clicked', {
+      source,
+      page: 'welcome'
+    })
+    onNavigate('goodreads')
+  }
   // Helper functions for sample receipt
   const renderStars = (rating) => {
     if (!rating) return ''
@@ -117,7 +125,7 @@ const WelcomePage = ({ onNavigate }) => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.5rem' }}>
-          <button className="rrg-button secondary" style={{ width: '220px' }} onClick={() => onNavigate('goodreads')}>
+          <button className="rrg-button secondary" style={{ width: '220px' }} onClick={() => handleImportClick('goodreads')}>
             Import from Goodreads
           </button>
           <button className="rrg-button" style={{ width: '220px', opacity: 0.5 }} disabled>

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Snowflake, Flower, Sun, Leaf, Calendar } from 'lucide-react'
 import SummaryStatsToggles from './SummaryStatsToggles'
+import { trackSettingChange } from '../PostHogProvider'
 
 const CustomizeSeasonalReceipt = ({ 
   selectedSeason,
@@ -17,8 +18,48 @@ const CustomizeSeasonalReceipt = ({
   showStats,
   setShowStats,
   pagesPerHour,
-  setPagesPerHour
+  setPagesPerHour,
+  onInteraction
 }) => {
+  const handleSeasonChange = (season) => {
+    trackSettingChange('selected_season', season, {
+      template: 'seasonal',
+      previous_value: selectedSeason
+    })
+    onInteraction?.()
+    setSelectedSeason(season)
+  }
+
+  const handleYearChange = (year) => {
+    trackSettingChange('selected_year', year, {
+      template: 'seasonal',
+      season: selectedSeason,
+      previous_value: selectedYear
+    })
+    onInteraction?.()
+    setSelectedYear(year)
+  }
+
+  const handleCustomSeasonStartChange = (date) => {
+    trackSettingChange('custom_season_start', date, {
+      template: 'seasonal',
+      season: 'custom',
+      previous_value: customSeasonStart
+    })
+    onInteraction?.()
+    setCustomSeasonStart(date)
+  }
+
+  const handleCustomSeasonEndChange = (date) => {
+    trackSettingChange('custom_season_end', date, {
+      template: 'seasonal',
+      season: 'custom',
+      previous_value: customSeasonEnd
+    })
+    onInteraction?.()
+    setCustomSeasonEnd(date)
+  }
+
   return (
     <div className="rrg-settings-section">
       <div style={{ marginBottom: '1rem' }}>
@@ -26,35 +67,35 @@ const CustomizeSeasonalReceipt = ({
         <div className="rrg-template-grid rrg-template-grid--season">
           <button 
             className={`rrg-template-button ${selectedSeason === 'winter' ? 'active' : ''}`}
-            onClick={() => setSelectedSeason('winter')}
+            onClick={() => handleSeasonChange('winter')}
           >
             <Snowflake size={18} color={selectedSeason === 'winter' ? '#fff' : '#111'} />
             <span>Winter</span>
           </button>
           <button 
             className={`rrg-template-button ${selectedSeason === 'spring' ? 'active' : ''}`}
-            onClick={() => setSelectedSeason('spring')}
+            onClick={() => handleSeasonChange('spring')}
           >
             <Flower size={18} color={selectedSeason === 'spring' ? '#fff' : '#111'} />
             <span>Spring</span>
           </button>
           <button 
             className={`rrg-template-button ${selectedSeason === 'summer' ? 'active' : ''}`}
-            onClick={() => setSelectedSeason('summer')}
+            onClick={() => handleSeasonChange('summer')}
           >
             <Sun size={18} color={selectedSeason === 'summer' ? '#fff' : '#111'} />
             <span>Summer</span>
           </button>
           <button 
             className={`rrg-template-button ${selectedSeason === 'fall' ? 'active' : ''}`}
-            onClick={() => setSelectedSeason('fall')}
+            onClick={() => handleSeasonChange('fall')}
           >
             <Leaf size={18} color={selectedSeason === 'fall' ? '#fff' : '#111'} />
             <span>Fall</span>
           </button>
           <button 
             className={`rrg-template-button ${selectedSeason === 'custom' ? 'active' : ''}`}
-            onClick={() => setSelectedSeason('custom')}
+            onClick={() => handleSeasonChange('custom')}
           >
             <Calendar size={18} color={selectedSeason === 'custom' ? '#fff' : '#111'} />
             <span>Custom</span>
@@ -67,7 +108,7 @@ const CustomizeSeasonalReceipt = ({
           <label className="rrg-label">Year</label>
           <select 
             value={selectedYear} 
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))} 
+            onChange={(e) => handleYearChange(parseInt(e.target.value))} 
             className="rrg-select"
           >
             {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
@@ -88,14 +129,14 @@ const CustomizeSeasonalReceipt = ({
               <input
                 type="date"
                 value={customSeasonStart}
-                onChange={(e) => setCustomSeasonStart(e.target.value)}
+                onChange={(e) => handleCustomSeasonStartChange(e.target.value)}
                 className="rrg-input"
                 style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}
               />
               <input
                 type="date"
                 value={customSeasonEnd}
-                onChange={(e) => setCustomSeasonEnd(e.target.value)}
+                onChange={(e) => handleCustomSeasonEndChange(e.target.value)}
                 className="rrg-input"
                 style={{ width: '100%', minWidth: 0, boxSizing: 'border-box' }}
               />

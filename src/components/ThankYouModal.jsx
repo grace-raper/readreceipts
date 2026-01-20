@@ -1,9 +1,16 @@
 import React from 'react'
 import { X, Coffee, Heart } from 'lucide-react'
 import './ThankYouModal.css'
+import { trackEvent } from './PostHogProvider'
 
 const ThankYouModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null
+
+  const handleCTAClick = (ctaType) => {
+    trackEvent('thank_you_cta_clicked', {
+      cta_type: ctaType
+    })
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -32,6 +39,7 @@ const ThankYouModal = ({ isOpen, onClose }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="modal-button primary pill"
+              onClick={() => handleCTAClick('buy_coffee')}
             >
               <Coffee size={18} />
               Sponsor / Buy me a coffee
@@ -45,6 +53,7 @@ const ThankYouModal = ({ isOpen, onClose }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="modal-button secondary"
+              onClick={() => handleCTAClick('follow_goodreads')}
             >
               Follow me on Goodreads
             </a>
@@ -53,6 +62,7 @@ const ThankYouModal = ({ isOpen, onClose }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="modal-button secondary"
+              onClick={() => handleCTAClick('follow_storygraph')}
             >
               Follow me on StoryGraph
             </a>

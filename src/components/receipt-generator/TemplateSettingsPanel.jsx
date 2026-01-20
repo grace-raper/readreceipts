@@ -28,7 +28,8 @@ const TemplateSettingsPanel = ({
   setCustomSeasonStart,
   customSeasonEnd,
   setCustomSeasonEnd,
-  getSeasonYearLabel
+  getSeasonYearLabel,
+  onInteraction
 }) => {
   return (
     <>
@@ -38,11 +39,14 @@ const TemplateSettingsPanel = ({
           setNumBooksToShow={setNumBooksToShow}
           showStats={showStats}
           setShowStats={setShowStats}
+          onInteraction={onInteraction}
         />
       )}
       
       {template === 'current' && (
-        <CustomizeCurrentlyReadingReceipt />
+        <CustomizeCurrentlyReadingReceipt 
+          onInteraction={onInteraction}
+        />
       )}
       
       {template === 'standard' && (
@@ -53,6 +57,7 @@ const TemplateSettingsPanel = ({
           setShowStats={setShowStats}
           pagesPerHour={pagesPerHour}
           setPagesPerHour={setPagesPerHour}
+          onInteraction={onInteraction}
         />
       )}
       
@@ -66,6 +71,7 @@ const TemplateSettingsPanel = ({
           setShowStats={setShowStats}
           pagesPerHour={pagesPerHour}
           setPagesPerHour={setPagesPerHour}
+          onInteraction={onInteraction}
         />
       )}
       
@@ -79,6 +85,7 @@ const TemplateSettingsPanel = ({
           setShowStats={setShowStats}
           pagesPerHour={pagesPerHour}
           setPagesPerHour={setPagesPerHour}
+          onInteraction={onInteraction}
         />
       )}
       
@@ -99,6 +106,7 @@ const TemplateSettingsPanel = ({
           setShowStats={setShowStats}
           pagesPerHour={pagesPerHour}
           setPagesPerHour={setPagesPerHour}
+          onInteraction={onInteraction}
         />
       )}
     </>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { trackSettingChange } from '../PostHogProvider'
 
 const SummaryStatsToggles = ({
   showStats,
@@ -9,13 +10,28 @@ const SummaryStatsToggles = ({
   showHighlightControls = false,
   goalInput = null
 }) => {
+  const handleToggle = (settingName, newValue) => {
+    trackSettingChange(settingName, newValue, {
+      section: 'summary_stats',
+      previous_value: showStats[settingName]
+    })
+    setShowStats({ ...showStats, [settingName]: newValue })
+  }
+
+  const handlePagesPerHourChange = (newValue) => {
+    trackSettingChange('pages_per_hour', newValue, {
+      section: 'reading_speed',
+      previous_value: pagesPerHour
+    })
+    setPagesPerHour(newValue)
+  }
   return (
     <div className="rrg-toggles-section">
       <label className="rrg-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <input
           type="checkbox"
           checked={showStats.statsSection}
-          onChange={(e) => setShowStats({ ...showStats, statsSection: e.target.checked })}
+          onChange={(e) => handleToggle('statsSection', e.target.checked)}
           className="rrg-checkbox"
         />
         Show Summary Stats
@@ -27,7 +43,7 @@ const SummaryStatsToggles = ({
             <input
               type="checkbox"
               checked={showStats.booksRead}
-              onChange={(e) => setShowStats({ ...showStats, booksRead: e.target.checked })}
+              onChange={(e) => handleToggle('booksRead', e.target.checked)}
               className="rrg-checkbox"
             />
             Books Read
@@ -37,7 +53,7 @@ const SummaryStatsToggles = ({
             <input
               type="checkbox"
               checked={showStats.avgRating}
-              onChange={(e) => setShowStats({ ...showStats, avgRating: e.target.checked })}
+              onChange={(e) => handleToggle('avgRating', e.target.checked)}
               className="rrg-checkbox"
             />
             Avg Rating
@@ -47,7 +63,7 @@ const SummaryStatsToggles = ({
             <input
               type="checkbox"
               checked={showStats.totalPages}
-              onChange={(e) => setShowStats({ ...showStats, totalPages: e.target.checked })}
+              onChange={(e) => handleToggle('totalPages', e.target.checked)}
               className="rrg-checkbox"
             />
             Total Pages
@@ -57,7 +73,7 @@ const SummaryStatsToggles = ({
             <input
               type="checkbox"
               checked={showStats.estHours}
-              onChange={(e) => setShowStats({ ...showStats, estHours: e.target.checked })}
+              onChange={(e) => handleToggle('estHours', e.target.checked)}
               className="rrg-checkbox"
             />
             Est. Reading Time
@@ -73,9 +89,9 @@ const SummaryStatsToggles = ({
                 value={pagesPerHour ?? ''}
                 onChange={(e) => {
                   const val = e.target.value
-                  if (val === '') return setPagesPerHour('')
+                  if (val === '') return handlePagesPerHourChange('')
                   const parsed = parseInt(val, 10)
-                  setPagesPerHour(Math.max(1, Math.min(200, parsed || 30)))
+                  handlePagesPerHourChange(Math.max(1, Math.min(200, parsed || 30)))
                 }}
                 onBlur={() => {
                   setPagesPerHour((prev) => {
@@ -100,7 +116,7 @@ const SummaryStatsToggles = ({
             <input
               type="checkbox"
               checked={showStats.goalSection}
-              onChange={(e) => setShowStats({ ...showStats, goalSection: e.target.checked })}
+              onChange={(e) => handleToggle('goalSection', e.target.checked)}
               className="rrg-checkbox"
             />
             Show Reading Goal
@@ -113,7 +129,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.goalBooks}
-                  onChange={(e) => setShowStats({ ...showStats, goalBooks: e.target.checked })}
+                  onChange={(e) => handleToggle('goalBooks', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Goal Books
@@ -122,7 +138,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.goalBooksRead}
-                  onChange={(e) => setShowStats({ ...showStats, goalBooksRead: e.target.checked })}
+                  onChange={(e) => handleToggle('goalBooksRead', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Books Read
@@ -131,7 +147,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.goalProgress}
-                  onChange={(e) => setShowStats({ ...showStats, goalProgress: e.target.checked })}
+                  onChange={(e) => handleToggle('goalProgress', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Progress
@@ -148,7 +164,7 @@ const SummaryStatsToggles = ({
             <input
               type="checkbox"
               checked={showStats.highlightsSection}
-              onChange={(e) => setShowStats({ ...showStats, highlightsSection: e.target.checked })}
+              onChange={(e) => handleToggle('highlightsSection', e.target.checked)}
               className="rrg-checkbox"
             />
             Show Highlights
@@ -160,7 +176,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.highlightsAvgLength}
-                  onChange={(e) => setShowStats({ ...showStats, highlightsAvgLength: e.target.checked })}
+                  onChange={(e) => handleToggle('highlightsAvgLength', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Avg Book Length
@@ -169,7 +185,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.highlightsAvgRating}
-                  onChange={(e) => setShowStats({ ...showStats, highlightsAvgRating: e.target.checked })}
+                  onChange={(e) => handleToggle('highlightsAvgRating', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Avg Rating
@@ -178,7 +194,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.highlightsFiveStar}
-                  onChange={(e) => setShowStats({ ...showStats, highlightsFiveStar: e.target.checked })}
+                  onChange={(e) => handleToggle('highlightsFiveStar', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 5★ Reads
@@ -187,7 +203,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.highlightsMostReadMonth}
-                  onChange={(e) => setShowStats({ ...showStats, highlightsMostReadMonth: e.target.checked })}
+                  onChange={(e) => handleToggle('highlightsMostReadMonth', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Most-Read Month
@@ -196,7 +212,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.highlightsShortest}
-                  onChange={(e) => setShowStats({ ...showStats, highlightsShortest: e.target.checked })}
+                  onChange={(e) => handleToggle('highlightsShortest', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Shortest Book
@@ -205,7 +221,7 @@ const SummaryStatsToggles = ({
                 <input
                   type="checkbox"
                   checked={showStats.highlightsLongest}
-                  onChange={(e) => setShowStats({ ...showStats, highlightsLongest: e.target.checked })}
+                  onChange={(e) => handleToggle('highlightsLongest', e.target.checked)}
                   className="rrg-checkbox"
                 />
                 Longest Book
