@@ -2,11 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { faker } from '@faker-js/faker'
 import Papa from 'papaparse'
-import { BookOpen, BookMarked, Calendar, ListChecks, Snowflake, Flower, Sun, Leaf, Edit2, Plus, Check } from 'lucide-react'
+import { Edit2, Check } from 'lucide-react'
 import ReceiptWrapper from '../components/ReceiptWrapper'
-import SummaryStatsToggles from '../components/SummaryStatsToggles'
-import TbrStatToggles from '../components/TbrStatToggles'
 import ThankYouModal from '../components/ThankYouModal'
+import TemplateSelector from '../components/receipt-generator/TemplateSelector'
+import TemplateSettingsPanel from '../components/receipt-generator/TemplateSettingsPanel'
+import BookManagementModal from '../components/receipt-generator/BookManagementModal'
+import ManualBookForm from '../components/receipt-generator/ManualBookForm'
+import { getSeasonYearLabel } from '../components/receipt-generator/utils/seasonUtils'
+import { filterBooksForTemplate } from '../components/receipt-generator/utils/bookFilters'
+import { downloadReceipt as downloadReceiptUtil, shareReceipt as shareReceiptUtil } from '../components/receipt-generator/utils/receiptUtils'
 import '../ReadingReceiptGenerator.css'
 import '../ReceiptTemplates.css'
 
@@ -139,32 +144,7 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   }, [])
 
   const shareReceipt = async () => {
-    if (!receiptRef.current) return downloadReceipt()
-    try {
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 3,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-      })
-      const dataUrl = canvas.toDataURL('image/png')
-      if (navigator.canShare && navigator.canShare()) {
-        const blob = await (await fetch(dataUrl)).blob()
-        const file = new File([blob], 'reading-receipt.png', { type: 'image/png' })
-        await navigator.share({
-          files: [file],
-          title: 'Reading Receipt',
-          text: 'Check out my reading receipt',
-        })
-      } else {
-        const link = document.createElement('a')
-        link.download = `reading-receipt-${getPeriodLabel().replace(/\s/g, '-').toLowerCase()}.png`
-        link.href = dataUrl
-        link.click()
-      }
-    } catch (err) {
-      console.error('Share failed, falling back to download', err)
-      downloadReceipt()
-    }
+    await shareReceiptUtil(receiptRef, getPeriodLabel, downloadReceipt)
   }
 
   useEffect(() => {
@@ -179,78 +159,8 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
     }
   }, [showAllBooksModal])
 
-  const getSeasonRange = () => {
-    const year = selectedYear
-    if (selectedSeason === 'winter') {
-      return {
-        start: new Date(year - 1, 11, 1), // Dec previous year
-        end: new Date(year, 1, 29, 23, 59, 59, 999), // end of Feb
-      }
-    }
-    if (selectedSeason === 'spring') {
-      return { start: new Date(year, 2, 1), end: new Date(year, 4, 31, 23, 59, 59, 999) }
-    }
-    if (selectedSeason === 'summer') {
-      return { start: new Date(year, 5, 1), end: new Date(year, 7, 31, 23, 59, 59, 999) }
-    }
-    if (selectedSeason === 'fall') {
-      return { start: new Date(year, 8, 1), end: new Date(year, 10, 30, 23, 59, 59, 999) }
-    }
-    if (selectedSeason === 'custom' && customSeasonStart && customSeasonEnd) {
-      return { start: new Date(customSeasonStart), end: new Date(customSeasonEnd) }
-    }
-    return null
-  }
-
-  const getSeasonYearLabel = (year, season = selectedSeason) => {
-    if (season === 'winter') {
-      return `${year} - Dec '${String(year - 1).slice(-2)}, Jan '${String(year).slice(-2)}, Feb '${String(year).slice(-2)}`
-    }
-    if (season === 'spring') return `${year} - Mar, Apr, May`
-    if (season === 'summer') return `${year} - Jun, Jul, Aug`
-    if (season === 'fall') return `${year} - Sep, Oct, Nov`
-    return `${year}`
-  }
-
-  const filterBooksForTemplate = () => {
-    let filtered = books
-
-    if (template === 'tbr') {
-      return filtered.filter((b) => b.shelf === 'toRead')
-    }
-
-    if (template === 'current') {
-      return filtered.filter((b) => b.shelf === 'currentlyReading')
-    }
-
-    if (template === 'yearly') {
-      return filtered.filter((b) => {
-        if (!b.dateFinished) return false
-        const d = new Date(b.dateFinished)
-        return d.getFullYear() === selectedYear
-      })
-    }
-
-    if (template === 'monthly') {
-      return filtered.filter((b) => {
-        if (!b.dateFinished) return false
-        const d = new Date(b.dateFinished)
-        return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth
-      })
-    }
-
-    if (template === 'seasonal') {
-      const range = getSeasonRange()
-      if (!range) return filtered
-      return filtered.filter((b) => {
-        if (!b.dateFinished) return false
-        const d = new Date(b.dateFinished)
-        return d >= range.start && d <= range.end
-      })
-    }
-
-    // standard template — show all read books
-    return filtered.filter((b) => b.shelf === 'read')
+  const getSeasonYearLabelWrapper = (year, season = selectedSeason) => {
+    return getSeasonYearLabel(year, season)
   }
 
   const addManualBook = () => {
@@ -323,31 +233,20 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   }
 
   const downloadReceipt = async () => {
-    if (!receiptRef.current) return
-
-    try {
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 3,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-      })
-      const data = canvas.toDataURL('image/png')
-      const link = document.createElement('a')
-      link.download = `reading-receipt-${getPeriodLabel().replace(/\s/g, '-').toLowerCase()}.png`
-      link.href = data
-      link.click()
-      
-      // Show thank you modal after successful download
-      setTimeout(() => {
-        setShowThankYouModal(true)
-      }, 500)
-    } catch (error) {
-      console.error('Error generating image:', error)
-      alert('Error generating image. Please try taking a screenshot instead.')
-    }
+    await downloadReceiptUtil(receiptRef, getPeriodLabel)
+    // Show thank you modal after successful download
+    setTimeout(() => {
+      setShowThankYouModal(true)
+    }, 500)
   }
 
-  const displayBooks = filterBooksForTemplate()
+  const displayBooks = filterBooksForTemplate(books, template, {
+    selectedYear,
+    selectedMonth,
+    selectedSeason,
+    customSeasonStart,
+    customSeasonEnd
+  })
   const modalDisplayBooks =
     modalShelf === 'all'
       ? books
@@ -369,197 +268,35 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
             <div className="rrg-customize">
               <h2>Customize</h2>
             
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label className="rrg-label">Receipt Template</label>
-              <div className="rrg-template-grid rrg-template-grid--main">
-                <button 
-                  className={`rrg-template-button ${template === 'standard' ? 'active' : ''}`}
-                  onClick={() => setTemplate('standard')}
-                >
-                  <BookOpen size={18} />
-                  <span>Default</span>
-                </button>
-                <button 
-                  className={`rrg-template-button ${template === 'yearly' ? 'active' : ''}`}
-                  onClick={() => setTemplate('yearly')}
-                >
-                  <Calendar size={18} />
-                  <span>Year</span>
-                </button>
-                <button 
-                  className={`rrg-template-button ${template === 'monthly' ? 'active' : ''}`}
-                  onClick={() => setTemplate('monthly')}
-                >
-                  <Calendar size={18} />
-                  <span>Monthly</span>
-                </button>
-                <button 
-                  className={`rrg-template-button ${template === 'seasonal' ? 'active' : ''}`}
-                  onClick={() => setTemplate('seasonal')}
-                >
-                  <Calendar size={18} />
-                  <span>Season</span>
-                </button>
-                <button 
-                  className={`rrg-template-button ${template === 'tbr' ? 'active' : ''}`}
-                  onClick={() => setTemplate('tbr')}
-                >
-                  <ListChecks size={18} />
-                  <span>TBR</span>
-                </button>
-                <button 
-                  className={`rrg-template-button ${template === 'current' ? 'active' : ''}`}
-                  onClick={() => setTemplate('current')}
-                >
-                  <BookMarked size={18} />
-                  <span>Current</span>
-                </button>
-              </div>
-            </div>
+            <TemplateSelector template={template} setTemplate={setTemplate} />
 
-            {/* Template-specific settings */}
-            {template === 'tbr' && (
-              <div className="rrg-settings-section">
-                <div style={{ marginBottom: '1rem' }}>
-                  <label className="rrg-label">Number of books to show</label>
-                  <input
-                    type="number"
-                    value={numBooksToShow === null ? '' : numBooksToShow}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      if (val === '') return setNumBooksToShow(null)
-                      const parsed = Math.max(1, Math.min(50, parseInt(val, 10) || 1))
-                      setNumBooksToShow(parsed)
-                    }}
-                    className="rrg-input"
-                    max="50"
-                  />
-                </div>
-
-                <TbrStatToggles showStats={showStats} setShowStats={setShowStats} />
-              </div>
-            )}
+            <TemplateSettingsPanel
+              template={template}
+              numBooksToShow={numBooksToShow}
+              setNumBooksToShow={setNumBooksToShow}
+              showStats={showStats}
+              setShowStats={setShowStats}
+              pagesPerHour={pagesPerHour}
+              setPagesPerHour={setPagesPerHour}
+              selectedYear={selectedYear}
+              setSelectedYear={setSelectedYear}
+              readingGoal={readingGoal}
+              setReadingGoal={setReadingGoal}
+              selectedMonth={selectedMonth}
+              setSelectedMonth={setSelectedMonth}
+              selectedSeason={selectedSeason}
+              setSelectedSeason={setSelectedSeason}
+              customSeasonName={customSeasonName}
+              setCustomSeasonName={setCustomSeasonName}
+              customSeasonStart={customSeasonStart}
+              setCustomSeasonStart={setCustomSeasonStart}
+              customSeasonEnd={customSeasonEnd}
+              setCustomSeasonEnd={setCustomSeasonEnd}
+              getSeasonYearLabel={getSeasonYearLabelWrapper}
+            />
             
-            {template === 'standard' && (
-              <div className="rrg-settings-section">
-                <div style={{ marginBottom: '1rem' }}>
-                  <label className="rrg-label">Number of books to include in stats</label>
-                  <input
-                    type="number"
-                    value={numBooksToShow === null ? '' : numBooksToShow}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      if (val === '') return setNumBooksToShow(null)
-                      const parsed = Math.max(1, Math.min(50, parseInt(val, 10) || 1))
-                      setNumBooksToShow(parsed)
-                    }}
-                    className="rrg-input"
-                    max="50"
-                  />
-                </div>
-
-                <SummaryStatsToggles
-                  showStats={showStats}
-                  setShowStats={setShowStats}
-                  pagesPerHour={pagesPerHour}
-                  setPagesPerHour={setPagesPerHour}
-                />
-              </div>
-            )}
-            
-            {template === 'yearly' && (
-              <div className="rrg-settings-section">
-                <div style={{ marginBottom: '1rem' }}>
-                  <label className="rrg-label">Year</label>
-                  <select 
-                    value={selectedYear} 
-                    onChange={(e) => setSelectedYear(parseInt(e.target.value))} 
-                    className="rrg-select"
-                  >
-                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <SummaryStatsToggles
-                  showStats={showStats}
-                  setShowStats={setShowStats}
-                  pagesPerHour={pagesPerHour}
-                  setPagesPerHour={setPagesPerHour}
-                  showGoalControls
-                  showHighlightControls
-                  goalInput={
-                    <div style={{ }}>
-                      <label className="rrg-label" style={{ fontWeight: 400, fontSize: '0.9rem' }}>
-                        What was your reading goal for {selectedYear || new Date().getFullYear()}?
-                      </label>
-                      <input
-                        type="number"
-                        value={readingGoal === null ? '' : readingGoal}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          if (val === '') {
-                            setReadingGoal(null)
-                            return
-                          }
-                          const parsed = Math.max(1, Math.min(5000, parseInt(val, 10) || 1))
-                          setReadingGoal(parsed)
-                        }}
-                        className="rrg-input"
-                        min="1"
-                        max="5000"
-                      />
-                    </div>
-                  }
-                />
-              </div>
-            )}
-            
-            {template === 'monthly' && (
-              <div className="rrg-settings-section">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                  <div>
-                    <label className="rrg-label">Month</label>
-                    <select 
-                      value={selectedMonth} 
-                      onChange={(e) => setSelectedMonth(parseInt(e.target.value))} 
-                      className="rrg-select"
-                    >
-                      {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => (
-                        <option key={index} value={index}>{month}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="rrg-label">Year</label>
-                    <select 
-                      value={selectedYear} 
-                      onChange={(e) => setSelectedYear(parseInt(e.target.value))} 
-                      className="rrg-select"
-                    >
-                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                
-                <SummaryStatsToggles
-                  showStats={showStats}
-                  setShowStats={setShowStats}
-                  pagesPerHour={pagesPerHour}
-                  setPagesPerHour={setPagesPerHour}
-                />
-              </div>
-            )}
-            
-            {template === 'seasonal' && (
+            {/* Remove old seasonal template code below */}
+            {false && template === 'seasonal' && (
               <div className="rrg-settings-section">
                 <div style={{ marginBottom: '1rem' }}>
                   <label className="rrg-label">Season</label>
@@ -816,106 +553,13 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                 )}
               </div>
               
-              <div style={{ marginTop: '1rem' }}>
-                <button onClick={() => setShowManualEntry(!showManualEntry)} className="rrg-button secondary" style={{ width: '100%' }}>
-                  <Plus size={18} />
-                  Add Book Manually
-                </button>
-              </div>
-              
-              {showManualEntry && (
-                <div className="rrg-manual">
-                  <h3 style={{ marginTop: '1rem', marginBottom: '0.75rem', fontSize: '14px' }}>Add a Book</h3>
-                  <div className="rrg-form-group">
-                    <label className="rrg-label">Title</label>
-                    <input
-                      type="text"
-                      value={manualBook.title}
-                      onChange={(e) => setManualBook({ ...manualBook, title: e.target.value })}
-                      className="rrg-input"
-                    />
-                  </div>
-                  
-                  <div className="rrg-form-group">
-                    <label className="rrg-label">Author</label>
-                    <input
-                      type="text"
-                      value={manualBook.author}
-                      onChange={(e) => setManualBook({ ...manualBook, author: e.target.value })}
-                      className="rrg-input"
-                    />
-                  </div>
-                  
-                  <div className="rrg-book-edit-row">
-                    <div className="rrg-form-group">
-                      <label className="rrg-label">Pages</label>
-                      <input
-                        type="number"
-                        value={manualBook.pages}
-                        onChange={(e) => setManualBook({ ...manualBook, pages: e.target.value })}
-                        className="rrg-input"
-                        min="0"
-                      />
-                    </div>
-                    
-                    <div className="rrg-form-group">
-                      <label className="rrg-label">Rating (0-5)</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="5"
-                        value={manualBook.rating}
-                        onChange={(e) => setManualBook({ ...manualBook, rating: e.target.value })}
-                        className="rrg-input"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="rrg-book-edit-row">
-                    <div className="rrg-form-group">
-                      <label className="rrg-label">Date Started</label>
-                      <input
-                        type="date"
-                        value={manualBook.dateStarted}
-                        onChange={(e) => setManualBook({ ...manualBook, dateStarted: e.target.value })}
-                        className="rrg-input"
-                      />
-                    </div>
-                    
-                    <div className="rrg-form-group">
-                      <label className="rrg-label">Date Finished</label>
-                      <input
-                        type="date"
-                        value={manualBook.dateFinished}
-                        onChange={(e) => setManualBook({ ...manualBook, dateFinished: e.target.value })}
-                        className="rrg-input"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="rrg-form-group rrg-checkbox-group">
-                    <label className="rrg-checkbox-label">
-                      <input
-                        type="checkbox"
-                        checked={manualBook.hidden || false}
-                        onChange={(e) => setManualBook({ ...manualBook, hidden: e.target.checked })}
-                        className="rrg-checkbox"
-                      />
-                      Hide from receipt
-                    </label>
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
-                    <button onClick={addManualBook} className="rrg-button" style={{ flex: 1 }}>
-                      Add
-                    </button>
-                    <button onClick={() => setShowManualEntry(false)} className="rrg-button secondary" style={{ flex: 1 }}>
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
+              <ManualBookForm
+                showManualEntry={showManualEntry}
+                setShowManualEntry={setShowManualEntry}
+                manualBook={manualBook}
+                setManualBook={setManualBook}
+                addManualBook={addManualBook}
+              />
             </div>
             
             <div style={{ marginBottom: '1rem' }}>
@@ -971,259 +615,18 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
       </div>
 
 
-      {showAllBooksModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.45)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-            zIndex: 999,
-          }}
-          onClick={() => setShowAllBooksModal(false)}
-        >
-          <div
-            style={{
-              background: '#fffaf1',
-              padding: '0',
-              borderRadius: '12px',
-              maxWidth: '820px',
-              width: '100%',
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.18)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                position: 'sticky',
-                top: 0,
-                background: '#fffaf1',
-                zIndex: 1,
-                padding: '1rem 1.5rem 0.75rem 1.5rem',
-                marginBottom: '0.5rem',
-                borderTopLeftRadius: '12px',
-                borderTopRightRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
-                <div>
-                  <h3 style={{ margin: 0 }}>All Books</h3>
-                </div>
-                <div
-                  onClick={() => setShowAllBooksModal(false)}
-                  style={{
-                    width: 'auto',
-                    padding: '0.35rem 0.5rem',
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '1.4rem',
-                    lineHeight: 1,
-                    cursor: 'pointer'
-                  }}
-                  aria-label="Close"
-                >
-                  ×
-                </div>
-              </div>
-
-              {/* Modal tabs for shelf filter */}
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-                {[
-                  { key: 'all', label: 'All' },
-                  { key: 'read', label: 'Read' },
-                  { key: 'currentlyReading', label: 'Currently Reading' },
-                  { key: 'toRead', label: 'To Read' },
-                ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setModalShelf(tab.key)}
-                    style={{
-                      padding: '0.4rem 0.9rem',
-                      borderRadius: '999px',
-                      border: modalShelf === tab.key ? '1px solid #2563eb' : '1px solid #e5e7eb',
-                      background: modalShelf === tab.key ? '#eff6ff' : '#fff',
-                      color: modalShelf === tab.key ? '#1d4ed8' : '#374151',
-                      fontWeight: 600,
-                      boxShadow: modalShelf === tab.key ? '0 6px 20px rgba(37, 99, 235, 0.15)' : 'none'
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ padding: '0 1.5rem 1.5rem 1.5rem' }}>
-              {modalDisplayBooks.length === 0 ? (
-                <div className="rrg-empty">No books in this shelf.</div>
-              ) : (
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  {modalDisplayBooks.map((book) => {
-                    const originalIndex = books.findIndex((b) => b === book)
-                  const shelfLabel =
-                    book.shelf === 'currentlyReading'
-                      ? 'currently-reading'
-                      : book.shelf === 'toRead'
-                      ? 'to-read'
-                      : 'read'
-                  const shelfColors = {
-                    read: { bg: '#ecfdf3', fg: '#166534' },
-                    toRead: { bg: '#fdf2f8', fg: '#9d174d' },
-                    currentlyReading: { bg: '#eff6ff', fg: '#1d4ed8' },
-                  }
-                  const colors = shelfColors[book.shelf] || shelfColors.read
-
-                    return (
-                      <div
-                        key={`all-book-${originalIndex}`}
-                        className={`rrg-book-row ${book.hidden ? 'hidden' : ''}`}
-                        style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '0.75rem' }}
-                      >
-                      {editingBook && editingBook.index === originalIndex ? (
-                        <div className="rrg-book-edit">
-                          <div className="rrg-form-group">
-                            <label className="rrg-label">Title</label>
-                            <input
-                              type="text"
-                              value={editingBook.title}
-                              onChange={(e) => setEditingBook({ ...editingBook, title: e.target.value })}
-                              className="rrg-input"
-                            />
-                          </div>
-
-                          <div className="rrg-form-group">
-                            <label className="rrg-label">Author</label>
-                            <input
-                              type="text"
-                              value={editingBook.author}
-                              onChange={(e) => setEditingBook({ ...editingBook, author: e.target.value })}
-                              className="rrg-input"
-                            />
-                          </div>
-
-                          <div className="rrg-book-edit-row">
-                            <div className="rrg-form-group">
-                              <label className="rrg-label">Pages</label>
-                              <input
-                                type="number"
-                                value={editingBook.pages}
-                                onChange={(e) => setEditingBook({ ...editingBook, pages: e.target.value })}
-                                className="rrg-input"
-                                min="0"
-                              />
-                            </div>
-
-                            <div className="rrg-form-group">
-                              <label className="rrg-label">Rating (0-5)</label>
-                              <input
-                                type="number"
-                                value={editingBook.rating}
-                                onChange={(e) => setEditingBook({ ...editingBook, rating: e.target.value })}
-                                className="rrg-input"
-                                step="0.1"
-                                min="0"
-                                max="5"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="rrg-book-edit-row">
-                            <div className="rrg-form-group">
-                              <label className="rrg-label">Date Started</label>
-                              <input
-                                type="date"
-                                value={editingBook.dateStarted || ''}
-                                onChange={(e) => setEditingBook({ ...editingBook, dateStarted: e.target.value })}
-                                className="rrg-input"
-                              />
-                            </div>
-
-                            <div className="rrg-form-group">
-                              <label className="rrg-label">Date Finished</label>
-                              <input
-                                type="date"
-                                value={editingBook.dateFinished || ''}
-                                onChange={(e) => setEditingBook({ ...editingBook, dateFinished: e.target.value })}
-                                className="rrg-input"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="rrg-form-group rrg-checkbox-group">
-                            <label className="rrg-checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={editingBook.hidden || false}
-                                onChange={(e) => setEditingBook({ ...editingBook, hidden: e.target.checked })}
-                                className="rrg-checkbox"
-                              />
-                              Hide from receipt
-                            </label>
-                          </div>
-
-                          <div className="rrg-book-edit-actions">
-                            <button onClick={saveEditedBook} className="rrg-button" style={{ flex: 1 }}>
-                              <Check size={16} /> Save
-                            </button>
-                            <button onClick={cancelEditing} className="rrg-button secondary" style={{ flex: 1 }}>
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div
-                              style={{
-                                alignSelf: 'flex-start',
-                                padding: '0.25rem 0.65rem',
-                                borderRadius: '999px',
-                                background: colors.bg,
-                                color: colors.fg,
-                                fontSize: '0.8rem',
-                                textTransform: 'capitalize',
-                                whiteSpace: 'nowrap',
-                                display: 'inline-block',
-                                marginBottom: '0.35rem',
-                              }}
-                            >
-                              {shelfLabel}
-                            </div>
-                            <div className="rrg-book-title">{book.title}</div>
-                            <div className="rrg-book-author">{book.author}</div>
-                            <div className="rrg-book-details">
-                              {book.pages > 0 && <span>{book.pages} pages</span>}
-                              {book.rating > 0 && <span>★{book.rating.toFixed(1)}</span>}
-                              {book.dateFinished && <span>{new Date(book.dateFinished).toLocaleDateString()}</span>}
-                              {book.hidden && <span className="rrg-hidden-badge">Hidden</span>}
-                            </div>
-                          </div>
-                          <div className="rrg-book-actions" style={{ alignItems: 'flex-start', gap: '0.4rem' }}>
-                            <button
-                              onClick={() => startEditingBook(originalIndex)}
-                              className="rrg-button secondary"
-                              style={{ padding: '0.35rem' }}
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                          </div>
-                        </>
-                      )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <BookManagementModal
+        showAllBooksModal={showAllBooksModal}
+        setShowAllBooksModal={setShowAllBooksModal}
+        books={books}
+        modalShelf={modalShelf}
+        setModalShelf={setModalShelf}
+        editingBook={editingBook}
+        setEditingBook={setEditingBook}
+        startEditingBook={startEditingBook}
+        saveEditedBook={saveEditedBook}
+        cancelEditing={cancelEditing}
+      />
 
       <ThankYouModal isOpen={showThankYouModal} onClose={() => setShowThankYouModal(false)} />
     </div>

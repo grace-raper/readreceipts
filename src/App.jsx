@@ -44,7 +44,18 @@ const App = () => {
   }
 
   const persistedData = loadPersistedData()
-  const [stage, setStage] = useState('welcome') // welcome | goodreads | receipt
+  
+  // Determine initial stage from URL path
+  const getInitialStage = () => {
+    const path = window.location.pathname
+    if (path === '/import' || path === '/goodreads') return 'goodreads'
+    if (path === '/receipt' || path === '/generator') return 'receipt'
+    if (path === '/about') return 'about'
+    if (path === '/feedback') return 'feedback'
+    return 'welcome'
+  }
+  
+  const [stage, setStage] = useState(getInitialStage())
   const [books, setBooks] = useState(persistedData.books)
   const [username, setUsername] = useState(persistedData.username)
   const [shelfCounts, setShelfCounts] = useState(persistedData.shelfCounts)
@@ -62,6 +73,30 @@ const App = () => {
       console.error('Error persisting data:', error)
     }
   }, [books, username, shelfCounts])
+
+  // Update URL when stage changes
+  useEffect(() => {
+    const pathMap = {
+      welcome: '/',
+      goodreads: '/import',
+      receipt: '/receipt',
+      about: '/about',
+      feedback: '/feedback'
+    }
+    const newPath = pathMap[stage] || '/'
+    if (window.location.pathname !== newPath) {
+      window.history.pushState({}, '', newPath)
+    }
+  }, [stage])
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      setStage(getInitialStage())
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   const handleNavigate = (destination) => {
     setStage(destination)

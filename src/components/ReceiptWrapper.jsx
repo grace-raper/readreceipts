@@ -1,10 +1,11 @@
 import React, { forwardRef } from 'react'
 import './Receipt.css'
-import StandardReceipt from './templates/StandardReceipt'
-import YearlyReceipt from './templates/YearlyReceipt'
-import PagesReceipt from './templates/PagesReceipt'
-import RatingsReceipt from './templates/RatingsReceipt'
-import ShelfReceipt from './templates/ShelfReceipt'
+import DefaultReceipt from './templates/DefaultReceipt'
+import YearReceipt from './templates/YearReceipt'
+import MonthReceipt from './templates/MonthReceipt'
+import SeasonReceipt from './templates/SeasonReceipt'
+import TbrReceipt from './templates/TbrReceipt'
+import CurrentlyReadingReceipt from './templates/CurrentlyReadingReceipt'
 
 const ReceiptWrapper = forwardRef(({ 
   books, 
@@ -335,32 +336,27 @@ const ReceiptWrapper = forwardRef(({
   // Render the selected template
   switch (template) {
     case 'yearly':
-      return <YearlyReceipt {...enhancedProps} selectedYear={selectedYear} />
+      return <YearReceipt {...enhancedProps} selectedYear={selectedYear} />
     case 'monthly':
-      return <YearlyReceipt {...enhancedProps} selectedYear={selectedYear} selectedMonth={selectedMonth} />
+      return <MonthReceipt {...enhancedProps} selectedYear={selectedYear} selectedMonth={selectedMonth} />
     case 'seasonal':
-      return <YearlyReceipt 
+      return <SeasonReceipt 
         {...enhancedProps} 
         selectedSeason={selectedSeason}
         customSeasonName={customSeasonName}
         customSeasonStart={customSeasonStart}
         customSeasonEnd={customSeasonEnd}
       />
-    case 'pages':
-      return <PagesReceipt {...enhancedProps} />
-    case 'ratings':
-      return <RatingsReceipt {...enhancedProps} />
     case 'tbr':
-      return <ShelfReceipt 
+      return <TbrReceipt 
         {...enhancedProps} 
-        shelfType="tbr" 
         numBooksToShow={numBooksToShow || 5} 
       />
     case 'current':
-      return <ShelfReceipt {...enhancedProps} shelfType="current" />
+      return <CurrentlyReadingReceipt {...enhancedProps} />
     case 'standard':
     default:
-      return <StandardReceipt {...enhancedProps} numBooksToShow={numBooksToShow} />
+      return <DefaultReceipt {...receiptProps} numBooksToShow={numBooksToShow} />
   }
 })
 

@@ -53,7 +53,7 @@
   width: 100%;
 }
 .rrg-preview-actions .rrg-button {
-  width: 100%;
+  width: 80%;
 }
 
 .rrg-container {
@@ -523,11 +523,18 @@
     inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
+@media (min-width: 768px) {
+  .rrg-main-layout {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
 @media (min-width: 1024px) {
   .rrg-main-layout {
     display: grid;
     grid-template-columns: 1fr 450px;
-    gap: 2rem;
+    gap: 1rem;
     align-items: start;
   }
 }
