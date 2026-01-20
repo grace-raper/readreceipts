@@ -6,7 +6,7 @@ import '../ReadingReceiptGenerator.css'
 const WelcomePage = ({ onNavigate }) => {
   return (
     <div className="rrg-page">
-      <div className="rrg-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 3.5rem)' }}>
+      <div className="rrg-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 3.5rem)', gap: '0.75rem' }}>
         <h1 className="rrg-title">Read Receipts</h1>
         <p className="rrg-subtitle" style={{ maxWidth: '780px', margin: '0 auto 1rem' }}>
           Turn your reading history into a vintage-styled receipt. Try the sample, then import your own.

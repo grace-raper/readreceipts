@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Download, Plus, X, Edit2, Check, Calendar, BookOpen, Star, PieChart, ListChecks, BookMarked, BookX, Snowflake, Flower, Sun, Leaf } from 'lucide-react'
+import { Download, Plus, X, Edit2, Check, Calendar, BookOpen, Star, PieChart, ListChecks, BookMarked, BookX, Snowflake, Flower, Sun, Leaf, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import ReceiptWrapper from '../components/ReceiptWrapper'
 import ThankYouModal from '../components/ThankYouModal'
@@ -33,6 +33,10 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   const [showAllBooksModal, setShowAllBooksModal] = useState(false)
   const [modalShelf, setModalShelf] = useState('all')
   const [showThankYouModal, setShowThankYouModal] = useState(false)
+  const [showShareMenu, setShowShareMenu] = useState(false)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [feedbackText, setFeedbackText] = useState('')
+  const [chromeHidden, setChromeHidden] = useState(false)
   const [editingBook, setEditingBook] = useState(null)
   const [manualBook, setManualBook] = useState({
     title: '',
@@ -79,6 +83,48 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
       setManualBook(storedManualBook)
     }
   }, [])
+
+  useEffect(() => {
+    let lastY = window.scrollY
+    const onScroll = () => {
+      const currentY = window.scrollY
+      const delta = currentY - lastY
+      if (Math.abs(delta) < 6) return
+      setChromeHidden(delta > 0)
+      lastY = currentY
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const shareReceipt = async () => {
+    if (!receiptRef.current) return downloadReceipt()
+    try {
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 3,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      })
+      const dataUrl = canvas.toDataURL('image/png')
+      if (navigator.canShare && navigator.canShare()) {
+        const blob = await (await fetch(dataUrl)).blob()
+        const file = new File([blob], 'reading-receipt.png', { type: 'image/png' })
+        await navigator.share({
+          files: [file],
+          title: 'Reading Receipt',
+          text: 'Check out my reading receipt',
+        })
+      } else {
+        const link = document.createElement('a')
+        link.download = `reading-receipt-${getPeriodLabel().replace(/\s/g, '-').toLowerCase()}.png`
+        link.href = dataUrl
+        link.click()
+      }
+    } catch (err) {
+      console.error('Share failed, falling back to download', err)
+      downloadReceipt()
+    }
+  }
 
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
@@ -273,9 +319,11 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
 
   return (
     <div className="rrg-page">
+
       <div className="rrg-container">
-        <h1 className="rrg-title">Reading Receipt Generator</h1>
-        <div className="rrg-subtitle">Create a receipt for your reading history</div>
+        <div className="rrg-page-header">
+          <h1 className="rrg-title">Reading Receipt Generator</h1>
+        </div>
 
         <div className="rrg-content">
           <div className="rrg-main-layout">
@@ -891,14 +939,58 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                   No books match the selected time period. Try selecting "All Time" or add more books.
                 </div>
               )}
-              <button onClick={downloadReceipt} disabled={displayBooks.length === 0} className="rrg-button secondary">
-                <Download size={18} />
-                Download Receipt
-              </button>
+              <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+                <button
+                  onClick={() => setShowShareMenu((prev) => !prev)}
+                  disabled={displayBooks.length === 0}
+                  className="rrg-button secondary"
+                  style={{ width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.45rem' }}
+                >
+                  <Share2 size={18} />
+                  Share / Save
+                </button>
+                {showShareMenu && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      marginTop: '0.35rem',
+                      background: '#fffaf1',
+                      border: '1px solid #1f1307',
+                      borderRadius: '8px',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                      minWidth: '200px',
+                      zIndex: 20,
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        setShowShareMenu(false)
+                        shareReceipt()
+                      }}
+                      className="rrg-share-item"
+                    >
+                      <Share2 size={16} />
+                      Share...
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowShareMenu(false)
+                        downloadReceipt()
+                      }}
+                      className="rrg-share-item"
+                    >
+                      <Download size={16} />
+                      Save as image
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
 
       {showAllBooksModal && (
         <div
