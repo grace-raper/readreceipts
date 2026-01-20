@@ -4,6 +4,8 @@ import GoodreadsImportPage from './pages/GoodreadsImportPage'
 import ReceiptGeneratorPage from './pages/ReceiptGeneratorPage'
 import AboutPage from './pages/AboutPage'
 import FeedbackPage from './pages/FeedbackPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import CookiePolicyPage from './pages/CookiePolicyPage'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import sampleBooks from './sampleBooks'
@@ -79,23 +81,25 @@ const App = () => {
   }
 
   return (
-    <>
+    <div className="rrg-app-shell">
       <Header currentPage={stage} onNavigate={handleNavigate} />
-      {stage === 'goodreads' && (
-        <GoodreadsImportPage onImportComplete={handleImportComplete} />
-      )}
-      {stage === 'receipt' && (
-        <ReceiptGeneratorPage
-          initialBooks={books}
-          initialUsername={username}
-          shelfCounts={shelfCounts}
-        />
-      )}
-      {stage === 'about' && <AboutPage />}
-      {stage === 'feedback' && <FeedbackPage />}
-      {stage === 'welcome' && <WelcomePage onNavigate={handleNavigate} />}
-      <Footer />
-    </>
+      <main className="rrg-main">
+        {stage === 'goodreads' && <GoodreadsImportPage onImportComplete={handleImportComplete} />}
+        {stage === 'receipt' && (
+          <ReceiptGeneratorPage
+            initialBooks={books}
+            initialUsername={username}
+            shelfCounts={shelfCounts}
+          />
+        )}
+        {stage === 'about' && <AboutPage />}
+        {stage === 'feedback' && <FeedbackPage />}
+        {stage === 'privacy' && <PrivacyPolicyPage onNavigate={handleNavigate} />}
+        {stage === 'cookies' && <CookiePolicyPage onNavigate={handleNavigate} />}
+        {stage === 'welcome' && <WelcomePage onNavigate={handleNavigate} />}
+      </main>
+      <Footer onNavigate={handleNavigate} />
+    </div>
   )
 }
 

@@ -1,6 +1,11 @@
 import React from 'react'
 
-const Footer = () => {
+const Footer = ({ onNavigate }) => {
+  const handleNav = (destination) => (e) => {
+    e.preventDefault()
+    onNavigate?.(destination)
+  }
+
   return (
     <footer className="rrg-footer">
       <div className="rrg-container rrg-footer-content">
@@ -23,8 +28,12 @@ const Footer = () => {
           </a>
         </div>
         <div className="rrg-footer-legal">
-          <a href="/cookies">Cookies</a>
-          <a href="/privacy">Privacy Policy</a>
+          <a href="/cookies" onClick={handleNav('cookies')}>
+            Cookies
+          </a>
+          <a href="/privacy" onClick={handleNav('privacy')}>
+            Privacy Policy
+          </a>
           <a href="mailto:readreceipts@graceraper.com">Contact</a>
         </div>
       </div>

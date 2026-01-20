@@ -20,6 +20,7 @@ const Header = ({ currentPage, onNavigate }) => {
           {currentPage !== 'welcome' && (
             <a
               href="/"
+              className="rrg-nav-link"
               onClick={(e) => {
                 e.preventDefault()
                 onNavigate('welcome')
@@ -30,6 +31,7 @@ const Header = ({ currentPage, onNavigate }) => {
           )}
           <a
             href="/about"
+            className="rrg-nav-link"
             onClick={(e) => {
               e.preventDefault()
               onNavigate('about')
@@ -39,6 +41,7 @@ const Header = ({ currentPage, onNavigate }) => {
           </a>
           <a
             href="/feedback"
+            className="rrg-nav-link"
             onClick={(e) => {
               e.preventDefault()
               onNavigate('feedback')

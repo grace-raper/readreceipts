@@ -118,30 +118,31 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
   }
 
   return (
-    <div className="rrg-page">
+    <div className="rrg-page rrg-page-compact">
       <div className="rrg-container" style={{ maxWidth: '700px', margin: '0 auto' }}>
-        <h1 className="rrg-title">Import from Goodreads</h1>
-        <p className="rrg-subtitle">Follow these steps to download and upload your reading history.</p>
-
-        <div className="rrg-card" style={{ marginBottom: '1.5rem' }}>
-          <h2>How to get your Goodreads CSV</h2>
-          <ol style={{ paddingLeft: '1.25rem', lineHeight: 1.7 }}>
-            <li>Go to Goodreads and log in</li>
-            <li>
-              Navigate to <strong>My Books</strong>
-            </li>
-            <li>
-              Scroll to the bottom and click <strong>Import and export</strong>
-            </li>
-            <li>
-              Click <strong>Export Library</strong>
-            </li>
-            <li>Download the CSV file</li>
-          </ol>
-        </div>
-
         <div className="rrg-card">
-          <h2>Upload your CSV</h2>
+          <h2>How to get your Goodreads Data: </h2>
+          <p style={{ margin: '0 0 0.75rem', lineHeight: 1.6 }}>
+            Goodreads doesn’t offer an API, but you can download your data from the desktop version of their website. This will <strong>NOT</strong> work in the Goodreads app.  
+            </p>
+            <ol style={{ paddingLeft: '1.25rem', lineHeight: 1.7, marginBottom: '1.25rem' }}>
+            <li>Go to Goodreads on a laptop/desktop and log in.</li>
+            <li>Navigate to <strong>My Books</strong>.</li>
+            <li>Scroll to the bottom and click <strong>Import and export</strong>.</li>
+            <li>Click <strong>Export Library</strong> to download the CSV file.</li>
+          </ol>
+            <p>
+              You can also try visiting the export page directly. If you are currently a mobile device, try long-pressing this link and then selecting "Open in New Tab": {' '}
+            <a href="https://www.goodreads.com/review/import" target="_blank" rel="noreferrer">
+              https://www.goodreads.com/review/import
+            </a>
+              . 
+          </p>
+
+          
+          
+
+          <h3 style={{ marginTop: 0 }}>Upload your CSV</h3>
           <input
             ref={fileInputRef}
             type="file"
