@@ -138,7 +138,7 @@ const AboutPage = () => {
             <a
               className="rrg-button"
               style={{ flex: '1 1 180px', minWidth: '200px', textAlign: 'center' }}
-              href="https://www.buymeacoffee.com/graceraper"
+              href="https://buymeacoffee.com/hk46zntm5pq"
               target="_blank"
               rel="noreferrer"
             >

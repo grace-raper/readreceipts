@@ -161,7 +161,7 @@ If you enjoy Read Receipts and want to support its development:
 
 - ⭐ **Star this repository** on GitHub
 - 📣 **Share it** with fellow book lovers
-- ☕ **[Buy me a coffee](https://www.buymeacoffee.com/graceraper)** to fuel development
+- ☕ **[Buy me a coffee](https://buymeacoffee.com/hk46zntm5pq)** to fuel development
 - 📚 **Follow me** on [Goodreads](https://www.goodreads.com/graceraper) or [StoryGraph](https://app.thestorygraph.com/profile/graceraper)
 
 ---
