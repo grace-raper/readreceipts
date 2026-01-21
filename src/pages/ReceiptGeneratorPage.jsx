@@ -16,7 +16,7 @@ import { trackTemplateSelection, trackReceiptDownload, trackBookAction, trackEve
 import '../ReadingReceiptGenerator.css'
 import '../ReceiptTemplates.css'
 
-const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { read: 0, currentlyReading: 0, toRead: 0 } }) => {
+const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { read: 0, currentlyReading: 0, toRead: 0 }, onNavigate }) => {
   const [books, setBooks] = useState(initialBooks)
   const [username, setUsername] = useState(() => {
     if (initialUsername) return initialUsername
@@ -779,13 +779,42 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                   No books match the selected time period. Try selecting "All Time" or add more books.
                 </div>
               )}
-              <div className="rrg-preview-actions">
+              <div
+                className="rrg-preview-actions"
+                style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' }}
+              >
                 <button
                   onClick={downloadReceipt}
                   disabled={displayBooks.length === 0}
                   className="rrg-button secondary"
                 >
                   Save
+                </button>
+                <button
+                  onClick={() => {
+                    const config = {
+                      template,
+                      period,
+                      selectedYear,
+                      selectedMonth,
+                      selectedSeason,
+                      customSeasonName,
+                      customSeasonStart,
+                      customSeasonEnd,
+                      receiptDate,
+                      pagesPerHour,
+                      numBooksToShow,
+                      showStats,
+                      readingGoal,
+                      displayBooks,
+                      username
+                    }
+                    onNavigate?.('share-social', config)
+                  }}
+                  disabled={displayBooks.length === 0}
+                  className="rrg-button"
+                >
+                  Share for Social
                 </button>
               </div>
             </div>

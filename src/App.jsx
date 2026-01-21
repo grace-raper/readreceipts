@@ -4,6 +4,7 @@ import GoodreadsImportPage from './pages/GoodreadsImportPage'
 import StoryGraphImportPage from './pages/StoryGraphImportPage'
 import ManualImportPage from './pages/ManualImportPage'
 import ReceiptGeneratorPage from './pages/ReceiptGeneratorPage'
+import ShareSocialPage from './pages/ShareSocialPage'
 import AboutPage from './pages/AboutPage'
 import FeedbackPage from './pages/FeedbackPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
@@ -55,6 +56,7 @@ const App = () => {
     if (path === '/storygraph') return 'storygraph'
     if (path === '/manual') return 'manual'
     if (path === '/receipt' || path === '/generator') return 'receipt'
+    if (path === '/share-social') return 'share-social'
     if (path === '/about') return 'about'
     if (path === '/feedback') return 'feedback'
     return 'welcome'
@@ -64,6 +66,7 @@ const App = () => {
   const [books, setBooks] = useState(persistedData.books)
   const [username, setUsername] = useState(persistedData.username)
   const [shelfCounts, setShelfCounts] = useState(persistedData.shelfCounts)
+  const [receiptConfig, setReceiptConfig] = useState(null)
 
   // Persist data to localStorage whenever it changes
   useEffect(() => {
@@ -87,6 +90,7 @@ const App = () => {
       storygraph: '/storygraph',
       manual: '/manual',
       receipt: '/receipt',
+      'share-social': '/share-social',
       about: '/about',
       feedback: '/feedback'
     }
@@ -112,8 +116,11 @@ const App = () => {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  const handleNavigate = (destination) => {
+  const handleNavigate = (destination, config = null) => {
     trackNavigation(stage, destination)
+    if (config) {
+      setReceiptConfig(config)
+    }
     setStage(destination)
   }
 
@@ -144,6 +151,15 @@ const App = () => {
             initialBooks={books}
             initialUsername={username}
             shelfCounts={shelfCounts}
+            onNavigate={handleNavigate}
+          />
+        )}
+        {stage === 'share-social' && (
+          <ShareSocialPage 
+            onNavigate={handleNavigate} 
+            receiptConfig={receiptConfig}
+            books={books}
+            username={username}
           />
         )}
         {stage === 'about' && <AboutPage />}
