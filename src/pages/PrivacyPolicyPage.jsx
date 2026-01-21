@@ -73,10 +73,11 @@ const PrivacyPolicyPage = ({ onNavigate }) => {
         <div className="rrg-card" style={{ marginBottom: '1rem' }}>
           <h2>Third-Party Services</h2>
           <p style={{ margin: '0 0 0.5rem', lineHeight: 1.6 }}>
-            We use the following third-party service for analytics:
+            We use the following third-party services:
           </p>
           <ul style={{ margin: '0.5rem 0 0 1.2rem', lineHeight: 1.6 }}>
             <li><strong>PostHog:</strong> Open-source product analytics platform. PostHog may collect usage data and session recordings (with your consent). PostHog's privacy policy is available at <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#d97706' }}>posthog.com/privacy</a>.</li>
+            <li><strong>Open Library API:</strong> When you import StoryGraph data, we query the Open Library API (openlibrary.org) to look up missing page counts using book ISBNs. These queries are made from your browser and include only the ISBN number—no personal information, reading history, or account data is sent. Open Library is a project of the Internet Archive. We cannot control or predict how long these API requests take to complete.</li>
           </ul>
           <p style={{ margin: '0.75rem 0 0', lineHeight: 1.6 }}>
             <strong>Important:</strong> We do not intentionally send your book data, reading history, or personally identifiable information about your reading habits to PostHog. However, session recordings may temporarily capture screen activity that includes this information (see Session Recording section below).

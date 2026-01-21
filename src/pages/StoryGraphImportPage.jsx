@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { Upload, ArrowRight } from 'lucide-react'
+import { Upload, ArrowRight, Info } from 'lucide-react'
 import Papa from 'papaparse'
 import '../ReadingReceiptGenerator.css'
 import { trackImport, trackEvent } from '../components/PostHogProvider'
@@ -9,6 +9,9 @@ const StoryGraphImportPage = ({ onImportComplete }) => {
   const [uploadError, setUploadError] = useState('')
   const [uploadSuccess, setUploadSuccess] = useState('')
   const [parsedData, setParsedData] = useState(null)
+  const [isEnrichingPages, setIsEnrichingPages] = useState(false)
+  const [enrichmentProgress, setEnrichmentProgress] = useState({ current: 0, total: 0 })
+  const [isProcessing, setIsProcessing] = useState(false)
   const [shelfCounts, setShelfCounts] = useState({
     read: 0,
     currentlyReading: 0,
@@ -45,6 +48,7 @@ const StoryGraphImportPage = ({ onImportComplete }) => {
     title: row.Title || row.title || '',
     author: row['Author(s)'] || row.Author || row.author || '',
     pages: parseInt(row.Pages || row.pages || row['Page Count'] || 0),
+    isbn: (row['ISBN/UID'] || row.ISBN || '').toString().trim(),
     rating: parseFloat(row['Star Rating'] || row.Rating || row.rating || 0),
     dateFinished: row['Last Date Read'] || row['Date Read'] || row['date finished'] || '',
     dateStarted: row['Date Started'] || row['date started'] || '',
@@ -98,6 +102,75 @@ const StoryGraphImportPage = ({ onImportComplete }) => {
     })
   }
 
+  const sanitizeIsbn = (rawIsbn) => {
+    if (!rawIsbn) return ''
+    const digits = rawIsbn.toString().replace(/[^0-9Xx]/g, '')
+    if (digits.length === 10 || digits.length === 13) return digits
+    return ''
+  }
+
+  const fetchPageCountForIsbn = async (isbn) => {
+    try {
+      const resp = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`)
+      if (!resp.ok) return null
+      const data = await resp.json()
+      const entry = data[`ISBN:${isbn}`]
+      const pagination = entry?.pagination || entry?.number_of_pages
+      if (pagination) {
+        const parsed = parseInt(pagination.toString().replace(/[^0-9]/g, ''), 10)
+        if (!Number.isNaN(parsed) && parsed > 0) return parsed
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const enrichPageCounts = async (books) => {
+    const needsLookup = books.filter((b) => (!b.pages || b.pages === 0) && sanitizeIsbn(b.isbn))
+    if (needsLookup.length === 0) return books
+
+    const enrichmentStartTime = Date.now()
+    setIsEnrichingPages(true)
+    setEnrichmentProgress({ current: 0, total: needsLookup.length })
+    
+    let successCount = 0
+    let failureCount = 0
+    
+    try {
+      for (let i = 0; i < needsLookup.length; i++) {
+        const book = needsLookup[i]
+        const isbn = sanitizeIsbn(book.isbn)
+        if (!isbn) {
+          failureCount++
+          continue
+        }
+        const pages = await fetchPageCountForIsbn(isbn)
+        if (pages) {
+          book.pages = pages
+          successCount++
+        } else {
+          failureCount++
+        }
+        setEnrichmentProgress({ current: i + 1, total: needsLookup.length })
+      }
+      
+      const enrichmentDuration = Math.round((Date.now() - enrichmentStartTime) / 1000)
+      trackEvent('page_count_enrichment_completed', {
+        source: 'storygraph',
+        total_queries: needsLookup.length,
+        successful_queries: successCount,
+        failed_queries: failureCount,
+        duration_seconds: enrichmentDuration,
+        books_with_zero_pages: books.filter(b => !b.pages || b.pages === 0).length
+      })
+    } finally {
+      setIsEnrichingPages(false)
+      setEnrichmentProgress({ current: 0, total: 0 })
+    }
+    return books
+  }
+
   const handleUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -105,6 +178,7 @@ const StoryGraphImportPage = ({ onImportComplete }) => {
     setUploadError('')
     setUploadSuccess('')
     setParsedData(null)
+    setIsProcessing(true)
 
     trackEvent('csv_upload_attempted', {
       source: 'storygraph',
@@ -114,6 +188,7 @@ const StoryGraphImportPage = ({ onImportComplete }) => {
 
     try {
       const { books, username, shelfCounts } = await parseCsv(file)
+      await enrichPageCounts(books)
       setUploadSuccess(
         `✓ Successfully parsed file — ${shelfCounts.read || 0} read; ${shelfCounts.currentlyReading || 0} currently reading; ${shelfCounts.toRead || 0} to-read.`
       )
@@ -127,11 +202,13 @@ const StoryGraphImportPage = ({ onImportComplete }) => {
         error: err.message,
         file_name: file.name
       })
+    } finally {
+      setIsProcessing(false)
     }
   }
 
   const triggerCSVPicker = () => {
-    if (fileInputRef.current) {
+    if (fileInputRef.current && !isProcessing) {
       fileInputRef.current.click()
     }
   }
@@ -172,20 +249,54 @@ const StoryGraphImportPage = ({ onImportComplete }) => {
               https://app.thestorygraph.com/user-export
             </a>
           </p>
+          <div className="rrg-alert rrg-alert-info" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8f4ec', border: '1px solid #e2d9c8', borderRadius: '8px', padding: '0.75rem', marginTop: '0.75rem' }}>
+            <Info size={18} color="#d97706" />
+            <div style={{ lineHeight: 1.5 }}>
+              StoryGraph exports do not include page counts. We look up page counts using the Open Library API by ISBN. If Open Library is missing data, those books may still show 0 pages. Minor discrepancies may occur between StoryGraph and Open Library data.
+            </div>
+          </div>
 
-          <h3 style={{ marginTop: '1.5rem' }}>Upload your CSV</h3>
+          <h3 style={{ marginTop: '1.5rem', marginBottom: '0.75rem' }}>Upload your CSV</h3>
           <input
             ref={fileInputRef}
             type="file"
             accept=".csv"
             onChange={handleUpload}
             style={{ display: 'none' }}
+            disabled={isProcessing}
           />
-          <div className="rrg-upload" onClick={triggerCSVPicker}>
+          <div 
+            className="rrg-upload" 
+            onClick={triggerCSVPicker}
+            style={{ 
+              opacity: isProcessing ? 0.6 : 1, 
+              cursor: isProcessing ? 'not-allowed' : 'pointer' 
+            }}
+          >
             <Upload size={32} style={{ marginBottom: '0.5rem' }} />
-            <div className="rrg-upload-title">Click to upload CSV</div>
+            <div className="rrg-upload-title">
+              {isProcessing ? 'Processing...' : 'Click to upload CSV'}
+            </div>
             <div className="rrg-upload-sub">All shelves will be imported</div>
           </div>
+
+          {isEnrichingPages && (
+            <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#f8f4ec', border: '1px solid #e2d9c8', borderRadius: '4px' }}>
+              <div style={{ marginBottom: '0.5rem', fontWeight: 600 }}>
+                Looking up page counts... ({enrichmentProgress.current} of {enrichmentProgress.total})
+              </div>
+              <div style={{ width: '100%', height: '8px', background: '#e2d9c8', borderRadius: '4px', overflow: 'hidden' }}>
+                <div 
+                  style={{ 
+                    width: `${enrichmentProgress.total > 0 ? (enrichmentProgress.current / enrichmentProgress.total) * 100 : 0}%`, 
+                    height: '100%', 
+                    background: '#d97706', 
+                    transition: 'width 0.3s ease' 
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
           {uploadError && (
             <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#fee', border: '1px solid #fcc', borderRadius: '4px', color: '#c33' }}>

@@ -121,6 +121,8 @@ npm run preview
 3. Upload the CSV to Read Receipts
 4. Create your receipt!
 
+**Note:** StoryGraph exports don't include page counts. Read Receipts automatically enriches your data by querying the [Open Library API](https://openlibrary.org/developers/api) using book ISBNs to fetch missing page counts. This happens client-side in your browser—only ISBN numbers are sent, no personal data. If Open Library doesn't have data for a book, it will show 0 pages.
+
 ### Manual Entry
 1. Click "Manual Import" on the welcome page
 2. Fill in book details (title and author required)
