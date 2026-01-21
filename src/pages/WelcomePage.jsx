@@ -10,8 +10,15 @@ const WelcomePage = ({ onNavigate }) => {
       source,
       page: 'welcome'
     })
-    onNavigate('goodreads')
+    if (source === 'goodreads') {
+      onNavigate('goodreads')
+    } else if (source === 'storygraph') {
+      onNavigate('storygraph')
+    } else if (source === 'manual') {
+      onNavigate('manual')
+    }
   }
+
   // Helper functions for sample receipt
   const renderStars = (rating) => {
     if (!rating) return ''
@@ -147,11 +154,11 @@ const WelcomePage = ({ onNavigate }) => {
           <button className="rrg-button secondary" onClick={() => handleImportClick('goodreads')}>
             Import from Goodreads
           </button>
-          <button className="rrg-button" style={{ opacity: 0.5 }} disabled>
-            Import from StoryGraph (soon)
+          <button className="rrg-button" onClick={() => handleImportClick('storygraph')}>
+            Import from StoryGraph
           </button>
-          <button className="rrg-button" style={{ opacity: 0.5 }} disabled>
-            Manual import (soon)
+          <button className="rrg-button" onClick={() => handleImportClick('manual')}>
+            Manual Import
           </button>
         </div>
       </div>

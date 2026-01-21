@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { Upload, BookOpen, BookMarked, BookX, ArrowRight } from 'lucide-react'
+import { Upload, ArrowRight } from 'lucide-react'
 import Papa from 'papaparse'
 import '../ReadingReceiptGenerator.css'
 import { trackImport, trackEvent } from '../components/PostHogProvider'
 
-const GoodreadsImportPage = ({ onImportComplete }) => {
+const StoryGraphImportPage = ({ onImportComplete }) => {
   const fileInputRef = useRef(null)
   const [uploadError, setUploadError] = useState('')
   const [uploadSuccess, setUploadSuccess] = useState('')
@@ -18,13 +18,13 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
 
   useEffect(() => {
     trackEvent('import_page_visited', {
-      source: 'goodreads'
+      source: 'storygraph'
     })
 
     return () => {
       const timeSpent = Math.round((Date.now() - pageStartTime) / 1000)
       trackEvent('import_page_exited', {
-        source: 'goodreads',
+        source: 'storygraph',
         time_spent_seconds: timeSpent,
         had_success: !!parsedData
       })
@@ -32,25 +32,25 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
   }, [pageStartTime, parsedData])
 
   const getShelfType = (row) => {
-    const shelf = row['Exclusive Shelf']?.toLowerCase().trim()
+    const shelf = row['Read Status']?.toLowerCase().trim()
     if (!shelf) return null
     
     if (shelf === 'read') return 'read'
-    if (shelf === 'currently-reading') return 'currentlyReading'
-    if (shelf === 'to-read') return 'toRead'
+    if (shelf === 'currently reading' || shelf === 'currently-reading') return 'currentlyReading'
+    if (shelf === 'to read' || shelf === 'to-read') return 'toRead'
     return null
   }
 
   const normalizeRow = (row, shelfType) => ({
     title: row.Title || row.title || '',
-    author: row.Author || row.author || row['Author l-f'] || '',
-    pages: parseInt(row['Number of Pages'] || row.pages || row['Page Count'] || 0),
-    rating: parseFloat(row['My Rating'] || row.rating || row.Rating || 0),
-    dateFinished: row['Date Read'] || row['date finished'] || row['Date Finished'] || '',
+    author: row['Author(s)'] || row.Author || row.author || '',
+    pages: parseInt(row.Pages || row.pages || row['Page Count'] || 0),
+    rating: parseFloat(row['Star Rating'] || row.Rating || row.rating || 0),
+    dateFinished: row['Last Date Read'] || row['Date Read'] || row['date finished'] || '',
     dateStarted: row['Date Started'] || row['date started'] || '',
     dateAdded: row['Date Added'] || '',
     shelf: shelfType,
-    progress: shelfType === 'currentlyReading' ? Math.floor(Math.random() * 80) + 5 : 0, // Mock progress for currently reading
+    progress: shelfType === 'currentlyReading' ? Math.floor(Math.random() * 80) + 5 : 0,
     hidden: false
   })
 
@@ -59,7 +59,6 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
       Papa.parse(file, {
         header: true,
         complete: (results) => {
-          // Group books by shelf type
           const books = []
           const counts = { read: 0, currentlyReading: 0, toRead: 0 }
           
@@ -80,20 +79,17 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
             return
           }
           
-          // Sort books: read books by date finished (newest first), others by date added
           books.sort((a, b) => {
             if (a.shelf === 'read' && b.shelf === 'read') {
-              // Sort read books by date finished (newest first)
               return new Date(b.dateFinished || 0) - new Date(a.dateFinished || 0)
             } else {
-              // Sort other books by date added (newest first)
               return new Date(b.dateAdded || 0) - new Date(a.dateAdded || 0)
             }
           })
 
           resolve({
             books,
-            username: results.data[0]?.['Goodreads User'] || '',
+            username: '',
             shelfCounts: counts
           })
         },
@@ -102,7 +98,7 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
     })
   }
 
-  const handleGoodreadsUpload = async (e) => {
+  const handleUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -111,6 +107,7 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
     setParsedData(null)
 
     trackEvent('csv_upload_attempted', {
+      source: 'storygraph',
       file_name: file.name,
       file_size: file.size
     })
@@ -122,10 +119,11 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
       )
       setParsedData({ books, username, shelfCounts })
       
-      trackImport('goodreads', books.length, shelfCounts)
+      trackImport('storygraph', books.length, shelfCounts)
     } catch (err) {
       setUploadError(err.message)
       trackEvent('csv_upload_failed', {
+        source: 'storygraph',
         error: err.message,
         file_name: file.name
       })
@@ -142,7 +140,7 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
     if (!parsedData) return
     const timeSpent = Math.round((Date.now() - pageStartTime) / 1000)
     trackEvent('import_success', {
-      source: 'goodreads',
+      source: 'storygraph',
       total_books: parsedData.books.length,
       read_books: parsedData.shelfCounts.read,
       currently_reading: parsedData.shelfCounts.currentlyReading,
@@ -157,39 +155,36 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
       <div className="rrg-container" style={{ maxWidth: '700px', margin: '0 auto' }}>
         <div className="rrg-import-inner">
         <div className="rrg-card">
-          <h2>How to get your Goodreads Data: </h2>
+          <h2>How to get your StoryGraph Data:</h2>
           <p style={{ margin: '0 0 0.75rem', lineHeight: 1.6 }}>
-            Goodreads doesn’t offer an API, but you can download your data from the desktop version of their website. This will <strong>NOT</strong> work in the Goodreads app.  
-            </p>
-            <ol style={{ paddingLeft: '1.25rem', lineHeight: 1.7, marginBottom: '1.25rem' }}>
-            <li>Go to Goodreads on a laptop/desktop and log in.</li>
-            <li>Navigate to <strong>My Books</strong>.</li>
-            <li>Scroll to the bottom and click <strong>Import and export</strong>.</li>
-            <li>Click <strong>Export Library</strong> to download the CSV file.</li>
+            StoryGraph allows you to export your reading data as a CSV file from your account settings.
+          </p>
+          <ol style={{ paddingLeft: '1.25rem', lineHeight: 1.7, marginBottom: '1.25rem' }}>
+            <li>Go to <a href="https://app.thestorygraph.com" target="_blank" rel="noreferrer">StoryGraph</a> and log in.</li>
+            <li>Click on your profile icon in the top right.</li>
+            <li>Select <strong>Manage Account</strong> from the dropdown.</li>
+            <li>Scroll down to <strong>Manage Your Data</strong> section.</li>
+            <li>Click the <strong>Export your library</strong> button and then click the <strong>Generate your Export</strong> button to download your reading data.</li>
           </ol>
-            <p>
-              You can also try visiting the export page directly. If you are currently a mobile device, try long-pressing this link and then selecting "Open in New Tab": {' '}
-            <a href="https://www.goodreads.com/review/import" target="_blank" rel="noreferrer">
-              https://www.goodreads.com/review/import
+          <p>
+            You can also try visiting the export page directly:{' '}
+            <a href="https://app.thestorygraph.com/user-export" target="_blank" rel="noreferrer">
+              https://app.thestorygraph.com/user-export
             </a>
-              . 
           </p>
 
-          
-          
-
-          <h3 style={{ marginTop: 0 }}>Upload your CSV</h3>
+          <h3 style={{ marginTop: '1.5rem' }}>Upload your CSV</h3>
           <input
             ref={fileInputRef}
             type="file"
             accept=".csv"
-            onChange={handleGoodreadsUpload}
+            onChange={handleUpload}
             style={{ display: 'none' }}
           />
           <div className="rrg-upload" onClick={triggerCSVPicker}>
             <Upload size={32} style={{ marginBottom: '0.5rem' }} />
             <div className="rrg-upload-title">Click to upload CSV</div>
-            <div className="rrg-upload-sub">Only books marked as "read" will be imported</div>
+            <div className="rrg-upload-sub">All shelves will be imported</div>
           </div>
 
           {uploadError && (
@@ -224,4 +219,4 @@ const GoodreadsImportPage = ({ onImportComplete }) => {
   )
 }
 
-export default GoodreadsImportPage
+export default StoryGraphImportPage

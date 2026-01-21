@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import WelcomePage from './pages/WelcomePage'
 import GoodreadsImportPage from './pages/GoodreadsImportPage'
+import StoryGraphImportPage from './pages/StoryGraphImportPage'
+import ManualImportPage from './pages/ManualImportPage'
 import ReceiptGeneratorPage from './pages/ReceiptGeneratorPage'
 import AboutPage from './pages/AboutPage'
 import FeedbackPage from './pages/FeedbackPage'
@@ -50,6 +52,8 @@ const App = () => {
   const getInitialStage = () => {
     const path = window.location.pathname
     if (path === '/import' || path === '/goodreads') return 'goodreads'
+    if (path === '/storygraph') return 'storygraph'
+    if (path === '/manual') return 'manual'
     if (path === '/receipt' || path === '/generator') return 'receipt'
     if (path === '/about') return 'about'
     if (path === '/feedback') return 'feedback'
@@ -80,6 +84,8 @@ const App = () => {
     const pathMap = {
       welcome: '/',
       goodreads: '/import',
+      storygraph: '/storygraph',
+      manual: '/manual',
       receipt: '/receipt',
       about: '/about',
       feedback: '/feedback'
@@ -118,10 +124,10 @@ const App = () => {
       if (importedShelfCounts) {
         setShelfCounts(importedShelfCounts)
       }
-      trackNavigation('goodreads', 'receipt')
+      trackNavigation(stage, 'receipt')
       setStage('receipt')
     } else {
-      trackNavigation('goodreads', 'welcome')
+      trackNavigation(stage, 'welcome')
       setStage('welcome')
     }
   }
@@ -131,6 +137,8 @@ const App = () => {
       <Header currentPage={stage} onNavigate={handleNavigate} />
       <main className="rrg-main">
         {stage === 'goodreads' && <GoodreadsImportPage onImportComplete={handleImportComplete} />}
+        {stage === 'storygraph' && <StoryGraphImportPage onImportComplete={handleImportComplete} />}
+        {stage === 'manual' && <ManualImportPage onImportComplete={handleImportComplete} />}
         {stage === 'receipt' && (
           <ReceiptGeneratorPage
             initialBooks={books}
