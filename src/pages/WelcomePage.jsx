@@ -33,18 +33,18 @@ const WelcomePage = ({ onNavigate }) => {
 
   const getPeriodLabel = () => 'ALL TIME'
 
-  const calculateStats = () => {
-    const totalPages = sampleBooks.reduce((sum, book) => sum + (book.pages || 0), 0)
+  const calculateStats = (books = sampleBooks) => {
+    const totalPages = books.reduce((sum, book) => sum + (book.pages || 0), 0)
     const totalMinutes = totalPages
     const totalHours = Math.round(totalMinutes / 60)
-    const booksWithRatings = sampleBooks.filter((b) => b.rating > 0)
+    const booksWithRatings = books.filter((b) => b.rating > 0)
     const avgRating =
       booksWithRatings.length > 0
         ? (booksWithRatings.reduce((sum, b) => sum + b.rating, 0) / booksWithRatings.length).toFixed(1)
         : 0
 
     return {
-      totalBooks: sampleBooks.length,
+      totalBooks: books.length,
       totalPages,
       totalHours,
       avgRating,
@@ -105,13 +105,8 @@ const WelcomePage = ({ onNavigate }) => {
   }
 
   const barcode = encodeCode39('readreceipts.xyz')
-  const previewStats = {
-    totalPages: 0,
-    totalBooks: 0,
-    avgRating: 0,
-    totalHours: 0,
-    showStats: { statsSection: false }
-  }
+  const previewStats = calculateStats(displayBooks)
+  previewStats.showStats = { statsSection: false }
 
   return (
     <div className="rrg-page rrg-page-compact">
