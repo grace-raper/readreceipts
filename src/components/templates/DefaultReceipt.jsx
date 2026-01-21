@@ -14,15 +14,15 @@ const DefaultReceipt = React.forwardRef(({ books, username, period, stats, displ
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title={receiptTitle} username={username} />
       
-      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
       
       <ReceiptMetadata 
-        leftText={`ORDER #${orderId}`} 
+        leftText={username ? `CUSTOMER: ${username.toUpperCase()}` : 'CUSTOMER: GUEST'} 
         rightText={today} 
       />
 
       <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
-
+      
       <ReceiptItemList 
         displayBooks={displayBooks}
         renderStars={renderStars}

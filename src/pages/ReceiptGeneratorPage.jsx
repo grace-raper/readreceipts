@@ -18,7 +18,13 @@ import '../ReceiptTemplates.css'
 
 const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { read: 0, currentlyReading: 0, toRead: 0 } }) => {
   const [books, setBooks] = useState(initialBooks)
-  const [username, setUsername] = useState(initialUsername)
+  const [username, setUsername] = useState(() => {
+    if (initialUsername) return initialUsername
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('rrg_customer_name') || ''
+    }
+    return ''
+  })
   const [period, setPeriod] = useState('all')
   const [template, setTemplate] = useState('standard')
   const [readingGoal, setReadingGoal] = useState(12)
@@ -35,6 +41,7 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   const [customSeasonName, setCustomSeasonName] = useState('')
   const [customSeasonStart, setCustomSeasonStart] = useState('')
   const [customSeasonEnd, setCustomSeasonEnd] = useState('')
+  const [receiptDate, setReceiptDate] = useState(new Date().toISOString().split('T')[0])
   const [pagesPerHour, setPagesPerHour] = useState(30)
   const [numBooksToShow, setNumBooksToShow] = useState(10)
   const [showStats, setShowStats] = useState({
@@ -431,6 +438,22 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
             <div className="rrg-customize">
               <h2>Customize</h2>
             
+            <div style={{ marginBottom: '1rem' }}>
+              <label className="rrg-label">Customer Name (optional)</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value)
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('rrg_customer_name', e.target.value)
+                  }
+                }}
+                placeholder="BOOKWORM23"
+                className="rrg-input"
+              />
+            </div>
+            
             <TemplateSelector template={template} setTemplate={setTemplate} />
 
             <TemplateSettingsPanel
@@ -455,6 +478,8 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
               setCustomSeasonStart={setCustomSeasonStart}
               customSeasonEnd={customSeasonEnd}
               setCustomSeasonEnd={setCustomSeasonEnd}
+              receiptDate={receiptDate}
+              setReceiptDate={setReceiptDate}
               getSeasonYearLabel={getSeasonYearLabelWrapper}
               onInteraction={trackInteraction}
             />
@@ -725,17 +750,6 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                 addManualBook={addManualBook}
               />
             </div>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <label className="rrg-label">Username (optional)</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="BOOKWORM23"
-                className="rrg-input"
-              />
-            </div>
 
             </div>
             
@@ -758,6 +772,7 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                   customSeasonName={customSeasonName}
                   customSeasonStart={customSeasonStart}
                   customSeasonEnd={customSeasonEnd}
+                  receiptDate={receiptDate}
                 />
               ) : (
                 <div className="rrg-empty" style={{ padding: '3rem 2rem' }}>

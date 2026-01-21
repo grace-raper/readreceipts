@@ -28,6 +28,8 @@ const TemplateSettingsPanel = ({
   setCustomSeasonStart,
   customSeasonEnd,
   setCustomSeasonEnd,
+  receiptDate,
+  setReceiptDate,
   getSeasonYearLabel,
   onInteraction
 }) => {
@@ -39,12 +41,16 @@ const TemplateSettingsPanel = ({
           setNumBooksToShow={setNumBooksToShow}
           showStats={showStats}
           setShowStats={setShowStats}
+          receiptDate={receiptDate}
+          setReceiptDate={setReceiptDate}
           onInteraction={onInteraction}
         />
       )}
       
       {template === 'current' && (
-        <CustomizeCurrentlyReadingReceipt 
+        <CustomizeCurrentlyReadingReceipt
+          receiptDate={receiptDate}
+          setReceiptDate={setReceiptDate}
           onInteraction={onInteraction}
         />
       )}

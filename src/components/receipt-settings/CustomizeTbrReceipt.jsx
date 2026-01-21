@@ -5,10 +5,26 @@ const CustomizeTbrReceipt = ({
   numBooksToShow,
   setNumBooksToShow,
   showStats,
-  setShowStats
+  setShowStats,
+  receiptDate,
+  setReceiptDate,
+  onInteraction
 }) => {
   return (
     <div className="rrg-settings-section">
+      <div style={{ marginBottom: '1rem' }}>
+        <label className="rrg-label">Receipt Date</label>
+        <input
+          type="date"
+          value={receiptDate}
+          onChange={(e) => {
+            setReceiptDate(e.target.value)
+            onInteraction?.()
+          }}
+          className="rrg-input"
+        />
+      </div>
+      
       <div style={{ marginBottom: '1rem' }}>
         <label className="rrg-label">Number of books to show</label>
         <input

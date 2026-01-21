@@ -539,42 +539,7 @@
   }
 }
 
-.rrg-receipt {
-  background: #ffffff;
-  padding: 1.75rem 1.5rem;
-  width: 400px;
-  max-width: 90vw;
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.45;
-  color: #111;
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.28),
-    0 10px 24px rgba(0, 0, 0, 0.18);
-  border-radius: 0;
-  position: relative;
-  background-image:
-    url('/paper.png'),
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.55), transparent 35%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.04), transparent 22%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.02), transparent 22%);
-  background-blend-mode: multiply, screen, normal, normal;
-  background-size: cover, auto, auto, auto;
-  overflow: hidden;
-  margin: 0 auto;
-}
-
-.rrg-receipt::after {
-  content: none;
-}
-
-.rrg-receipt::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
-  pointer-events: none;
-}
+/* Receipt styles moved to Receipt.css - do not duplicate here */
 
 .rrg-receipt h2 {
   margin: 0;

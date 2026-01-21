@@ -5,6 +5,7 @@ import ReceiptMetadata from './receipt-parts/ReceiptMetadata'
 import ReceiptTotal from './receipt-parts/ReceiptTotal'
 import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
+import Barcode from './receipt-parts/Barcode'
 import DashedDivider from './receipt-parts/DashedDivider'
 
 const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, today, formatPrice, getPeriodLabel, barcode, showStats = {} }, ref) => {
@@ -47,10 +48,10 @@ const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, tod
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title="TBR BOOKS" username={username} />
       
-      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
       
       <ReceiptMetadata 
-        leftText="SHELF SUMMARY" 
+        leftText={username ? `CUSTOMER: ${username.toUpperCase()}` : 'CUSTOMER: GUEST'} 
         rightText={today} 
       />
 
@@ -111,28 +112,7 @@ const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, tod
         </ReceiptSection>
         </>
       )}
-
-      <DashedDivider marginTop="0.8rem" marginBottom="0" />
-
-      <div
-        style={{
-          paddingTop: '1rem',
-          textAlign: 'center',
-        }}
-      >
-        <div className="rrg-chip">SO MANY BOOKS, SO LITTLE TIME</div>
-        <p style={{ margin: '0.6rem 0 0', fontSize: '11px', opacity: 0.7 }}>{getPeriodLabel()}</p>
-      </div>
-
-      <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-        <p style={{ margin: 0, fontSize: '14px' }}>HAPPY READING!</p>
-      </div>
-
-      {barcode}
-
-      <div style={{ textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
-        <p style={{ margin: 0 }}>readingreceipt.app</p>
-      </div>
+      <Barcode barcode={barcode}/>
     </div>
   )
 })

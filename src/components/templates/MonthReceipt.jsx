@@ -24,10 +24,10 @@ const MonthReceipt = React.forwardRef(({ books, username, period, stats, display
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title={receiptTitle} username={username} />
       
-      <DashedDivider marginTop="0.9rem" marginBottom="0" />
+      <DashedDivider marginTop="0.9rem" marginBottom="0.9rem" />
       
       <ReceiptMetadata 
-        leftText={`MONTHLY READING`} 
+        leftText={username ? `CUSTOMER: ${username.toUpperCase()}` : 'CUSTOMER: GUEST'} 
         rightText={today} 
       />
 
@@ -71,7 +71,7 @@ const MonthReceipt = React.forwardRef(({ books, username, period, stats, display
         </>
       )}
 
-      <Barcode barcode={barcode} marginTop="0.35rem" />
+      <Barcode barcode={barcode} />
     </div>
   )
 })

@@ -44,7 +44,8 @@ const ReceiptWrapper = forwardRef(({
   selectedSeason,
   customSeasonName,
   customSeasonStart,
-  customSeasonEnd
+  customSeasonEnd,
+  receiptDate
 }, ref) => {
   // Code39 barcode encoding
   const code39 = {
@@ -217,54 +218,75 @@ const ReceiptWrapper = forwardRef(({
     .toString()
     .padStart(4, '0')
     
-  // Generate appropriate date based on template and period
-  let displayDate = new Date()
-  let dateFormat = {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  // Generate appropriate date/date range based on template
+  const formatDateRange = (startDate, endDate) => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    const startMonth = start.toLocaleDateString('en-US', { month: 'short' })
+    const endMonth = end.toLocaleDateString('en-US', { month: 'short' })
+    const startDay = start.getDate()
+    const endDay = end.getDate()
+    const startYear = start.getFullYear()
+    const endYear = end.getFullYear()
+    
+    if (startYear === endYear) {
+      return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${endYear}`
+    } else {
+      return `${startMonth} ${startDay}, ${startYear} - ${endMonth} ${endDay}, ${endYear}`
+    }
   }
+  
+  let today = ''
   
   if (template === 'yearly' && selectedYear) {
-    // For yearly template, show December 31 of the selected year
-    displayDate = new Date(selectedYear, 11, 31)
-    dateFormat = {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    }
+    // Year template: show date range (Jan 1 - Dec 31, YYYY)
+    today = formatDateRange(
+      new Date(selectedYear, 0, 1),
+      new Date(selectedYear, 11, 31)
+    )
   } else if (template === 'monthly' && selectedYear && selectedMonth !== undefined) {
-    // For monthly template, show the last day of the selected month
+    // Monthly template: show last day of month (e.g., "January 31, 2025")
     const lastDay = new Date(selectedYear, selectedMonth + 1, 0).getDate()
-    displayDate = new Date(selectedYear, selectedMonth, lastDay)
-    dateFormat = {
+    const displayDate = new Date(selectedYear, selectedMonth, lastDay)
+    today = displayDate.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
-      year: 'numeric',
-    }
+      year: 'numeric'
+    })
   } else if (template === 'seasonal') {
-    if (selectedSeason === 'winter') {
-      displayDate = new Date(new Date().getFullYear(), 1, 28) // Feb 28
+    // Seasonal template: show date range based on season
+    if (selectedSeason === 'custom' && customSeasonStart && customSeasonEnd) {
+      today = formatDateRange(customSeasonStart, customSeasonEnd)
+    } else if (selectedSeason === 'winter') {
+      const year = selectedYear || new Date().getFullYear()
+      today = formatDateRange(new Date(year, 11, 1), new Date(year + 1, 1, 28))
     } else if (selectedSeason === 'spring') {
-      displayDate = new Date(new Date().getFullYear(), 4, 31) // May 31
+      const year = selectedYear || new Date().getFullYear()
+      today = formatDateRange(new Date(year, 2, 1), new Date(year, 4, 31))
     } else if (selectedSeason === 'summer') {
-      displayDate = new Date(new Date().getFullYear(), 7, 31) // Aug 31
+      const year = selectedYear || new Date().getFullYear()
+      today = formatDateRange(new Date(year, 5, 1), new Date(year, 7, 31))
     } else if (selectedSeason === 'fall') {
-      displayDate = new Date(new Date().getFullYear(), 10, 30) // Nov 30
-    } else if (selectedSeason === 'custom' && customSeasonEnd) {
-      displayDate = new Date(customSeasonEnd)
+      const year = selectedYear || new Date().getFullYear()
+      today = formatDateRange(new Date(year, 8, 1), new Date(year, 10, 30))
     }
-    dateFormat = {
+  } else if ((template === 'tbr' || template === 'current') && receiptDate) {
+    // TBR/Currently Reading: use custom receipt date
+    const displayDate = new Date(receiptDate)
+    today = displayDate.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
-      year: 'numeric',
-    }
+      year: 'numeric'
+    })
+  } else {
+    // Default: use today's date
+    const displayDate = new Date()
+    today = displayDate.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
   }
-  
-  const today = displayDate
-    .toLocaleDateString('en-US', dateFormat)
-    .toUpperCase()
 
   // Generate barcode component
   const barcode = (

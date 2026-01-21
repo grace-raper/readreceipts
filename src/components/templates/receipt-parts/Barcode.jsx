@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Barcode = ({ barcode, url = 'https://readreceipts.xyz', marginTop = '0.35rem' }) => {
+const Barcode = ({ barcode, url = 'https://readreceipts.xyz'}) => {
   const renderBarcode = () => {
     if (!barcode) return null
     // If already JSX, render as-is
@@ -26,7 +26,7 @@ const Barcode = ({ barcode, url = 'https://readreceipts.xyz', marginTop = '0.35r
   }
 
   return (
-    <div style={{ textAlign: 'center', marginTop }}>
+    <div style={{ textAlign: 'center'}}>
       {renderBarcode()}
       <div style={{ fontSize: '11px', color: '#4b5563', marginTop: '-2rem' }}>{url}</div>
     </div>
