@@ -1,0 +1,21 @@
+{
+  "name": "Read Receipts",
+  "short_name": "ReadReceipts",
+  "description": "Transform your reading list into a beautiful receipt",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffaf1",
+  "theme_color": "#1f1307",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
