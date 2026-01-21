@@ -12,6 +12,8 @@ const ThankYouModal = ({ isOpen, onClose }) => {
     })
   }
 
+  const avatarSrc = `${import.meta.env.BASE_URL}grace-avatar.png`
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -22,7 +24,7 @@ const ThankYouModal = ({ isOpen, onClose }) => {
         <div className="modal-header">
           <Heart size={32} style={{ color: '#d97706' }} />
           <h2>Thanks for using Read Receipts!</h2>
-          <img src="/grace-avatar.png" alt="Grace" className="modal-avatar" />
+          <img src={avatarSrc} alt="Grace" className="modal-avatar" />
         </div>
 
         <div className="modal-body">
@@ -45,7 +47,7 @@ const ThankYouModal = ({ isOpen, onClose }) => {
               Sponsor / Buy me a coffee
             </a>
             <p className="modal-support-copy">
-              No budget but still want to support? Following me on Goodreads or StoryGraph means a lot — maybe one day I’ll even become a #bookfluencer or land a few ARCs.
+              No budget but still want to support? I’d love a follow on Goodreads or StoryGraph — growing an audience big enough to receive ARCs is a longtime dream of mine.
             </p>
 
             <a

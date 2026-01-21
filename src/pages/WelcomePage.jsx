@@ -151,7 +151,7 @@ const WelcomePage = ({ onNavigate }) => {
         </div>
 
         <div className="welcome-imports">
-          <button className="rrg-button secondary" onClick={() => handleImportClick('goodreads')}>
+          <button className="rrg-button" onClick={() => handleImportClick('goodreads')}>
             Import from Goodreads
           </button>
           <button className="rrg-button" onClick={() => handleImportClick('storygraph')}>

@@ -88,14 +88,15 @@ const AboutPage = () => {
             <a href="https://graceraper.substack.com" target="_blank" rel="noreferrer" aria-label="Substack">
               <img src="https://s.magecdn.com/social/mb-substack.svg" alt="Substack" width="32" height="32" />
             </a> 
+            
+            <a href="https://www.tiktok.com/@grace.raper" target="_blank" rel="noreferrer" aria-label="TikTok">
+              <img src="https://s.magecdn.com/social/mb-tiktok.svg" alt="TikTok" width="32" height="32" />
+            </a>
 
             <a href="https://www.instagram.com/graceiraper" target="_blank" rel="noreferrer" aria-label="Instagram">
               <img src="https://s.magecdn.com/social/mb-instagram.svg" alt="Instagram" width="32" height="32" />
             </a>
 
-            <a href="https://www.tiktok.com/@grace.raper" target="_blank" rel="noreferrer" aria-label="TikTok">
-              <img src="https://s.magecdn.com/social/mb-tiktok.svg" alt="TikTok" width="32" height="32" />
-            </a>
               
             </div>
           </section>
@@ -128,7 +129,7 @@ const AboutPage = () => {
                 color: '#fff',
                 border: '2px solid #1f1307'
               }}
-              href="https://github.com/graceraper/readreceipts"
+              href="https://github.com/grace-raper/readreceipts"
               target="_blank"
               rel="noreferrer"
             >
