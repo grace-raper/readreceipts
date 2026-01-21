@@ -49,7 +49,6 @@ const WelcomePage = ({ onNavigate }) => {
   const orderId = '1234'
   const today = new Date()
     .toLocaleDateString('en-US', {
-      weekday: 'long',
       month: 'long',
       day: 'numeric',
       year: 'numeric',
@@ -99,24 +98,44 @@ const WelcomePage = ({ onNavigate }) => {
   }
 
   const barcode = encodeCode39('readreceipts.xyz')
+  const previewStats = {
+    totalPages: 0,
+    totalBooks: 0,
+    avgRating: 0,
+    totalHours: 0,
+    showStats: { statsSection: false }
+  }
 
   return (
-    <div className="rrg-page">
-      <div className="rrg-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 3.5rem)', gap: '0.75rem' }}>
-        <h1 className="rrg-title">Read Receipts</h1>
-        <p className="rrg-subtitle" style={{ maxWidth: '780px', margin: '0 auto 1rem' }}>
-          Turn your reading history into a vintage-styled receipt. Try the sample, then import your own.
+    <div className="rrg-page rrg-page-compact">
+      <div
+        className="rrg-container"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          paddingTop: '1.25rem',
+          paddingBottom: '0.2rem',
+          paddingLeft: '1rem',
+          paddingRight: '1rem',
+          gap: '0.15rem'
+        }}
+      >
+        <h1 className="rrg-title" style={{ margin: '0 0 0.1rem' }}>Read Receipts</h1>
+        <p className="rrg-subtitle" style={{ maxWidth: '780px', margin: '0 auto 0.7rem', lineHeight: 1.6 }}>
+          Read Receipts turns your reading history into a shareable receipt, perfect for tracking goals, highlighting favorites, and sharing your literary journey.
         </p>
 
-        <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center', width: '100%' }}>
+        <div className="welcome-actions" style={{ marginBottom: '0.45rem', display: 'flex', justifyContent: 'center', width: '100%', gap: '0.75rem', flexWrap: 'wrap' }}>
           <DefaultReceipt 
-            books={sampleBooks}
             username="BOOKWORM"
-            period="all"
-            stats={stats}
+            onUsernameChange={() => {}}
+            barcodeText={'readreceipts.xyz'}
+            today={today}
             displayBooks={displayBooks}
             orderId={orderId}
-            today={today}
+            stats={previewStats}
             renderStars={renderStars}
             formatPrice={formatPrice}
             getPeriodLabel={getPeriodLabel}
@@ -124,14 +143,14 @@ const WelcomePage = ({ onNavigate }) => {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '0.5rem' }}>
-          <button className="rrg-button secondary" style={{ width: '220px' }} onClick={() => handleImportClick('goodreads')}>
+        <div className="welcome-imports">
+          <button className="rrg-button secondary" onClick={() => handleImportClick('goodreads')}>
             Import from Goodreads
           </button>
-          <button className="rrg-button" style={{ width: '220px', opacity: 0.5 }} disabled>
+          <button className="rrg-button" style={{ opacity: 0.5 }} disabled>
             Import from StoryGraph (soon)
           </button>
-          <button className="rrg-button" style={{ width: '220px', opacity: 0.5 }} disabled>
+          <button className="rrg-button" style={{ opacity: 0.5 }} disabled>
             Manual import (soon)
           </button>
         </div>

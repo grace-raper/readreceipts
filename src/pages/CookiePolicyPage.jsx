@@ -3,7 +3,7 @@ import '../ReadingReceiptGenerator.css'
 
 const CookiePolicyPage = ({ onNavigate }) => {
   return (
-    <div className="rrg-page">
+    <div className="rrg-page rrg-page-compact">
       <div className="rrg-container" style={{ maxWidth: '900px', margin: '0 auto', padding: '1.5rem 1rem' }}>
         <h1 className="rrg-title" style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
           Cookie Policy

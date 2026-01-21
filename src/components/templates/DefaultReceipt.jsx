@@ -9,7 +9,7 @@ import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
 import DashedDivider from './receipt-parts/DashedDivider'
 
-const DefaultReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS' }, ref) => {
+const DefaultReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, barcodeText, receiptTitle = 'READ RECEIPTS' }, ref) => {
   return (
     <div ref={ref} className="rrg-receipt">
       <ReceiptHeader title={receiptTitle} username={username} />
@@ -58,7 +58,7 @@ const DefaultReceipt = React.forwardRef(({ books, username, period, stats, displ
         </>
       )}
 
-      <Barcode barcode={barcode} />
+      <Barcode barcode={barcode} encode={barcodeText} />
     </div>
   )
 })

@@ -436,7 +436,7 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
         <div className="rrg-content">
           <div className="rrg-main-layout">
             <div className="rrg-customize">
-              <h2>Customize</h2>
+              <h2 style={{ margin: '0 0 0.6rem', padding: 0 }}>Design Your Receipt:</h2>
             
             <div style={{ marginBottom: '1rem' }}>
               <label className="rrg-label">Customer Name (optional)</label>

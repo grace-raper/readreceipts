@@ -11,7 +11,7 @@ const Footer = ({ onNavigate }) => {
       <div className="rrg-container rrg-footer-content">
         <div className="rrg-footer-left">
           © {new Date().getFullYear()} Read Receipts
-          <span className="rrg-footer-sub">created by Grace Raper</span>
+          {/* <span className="rrg-footer-sub">created by Grace Raper</span> */}
         </div>
         <div className="rrg-footer-social">
           <a href="https://www.instagram.com/graceraper" target="_blank" rel="noreferrer" aria-label="Instagram">

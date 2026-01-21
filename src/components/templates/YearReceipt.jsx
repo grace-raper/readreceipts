@@ -10,13 +10,13 @@ import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
 import ReceiptSectionHeader from './receipt-parts/ReceiptSectionHeader'
 import DashedDivider from './receipt-parts/DashedDivider'
 
-const YearReceipt = React.forwardRef(({ books, username, period, template, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS', selectedYear }, ref) => {
+const YearReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, barcodeText, receiptTitle = 'YEAR IN REVIEW', selectedYear }, ref) => {
   // Additional stats for yearly receipt
   const currentYear = new Date().getFullYear()
   const displayYear = selectedYear || currentYear
   const booksWithRatings = books.filter(book => book.rating > 0)
   const fiveStarBooks = booksWithRatings.filter(book => Math.round(book.rating) === 5).length
-  const isYearTemplate = template === 'yearly'
+  const isYearTemplate = stats?.template === 'yearly'
   const showStats = stats?.showStats || {
     statsSection: true,
     booksRead: true,
@@ -168,7 +168,7 @@ const YearReceipt = React.forwardRef(({ books, username, period, template, stats
         </>
       )}
 
-      <Barcode barcode={barcode}/>
+      <Barcode barcode={barcode} encode={barcodeText} />
     </div>
   )
 })

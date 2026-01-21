@@ -9,7 +9,7 @@ import ReceiptSection from './receipt-parts/ReceiptSection'
 import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
 import DashedDivider from './receipt-parts/DashedDivider'
 
-const MonthReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, receiptTitle = 'READ RECEIPTS', selectedYear, selectedMonth }, ref) => {
+const MonthReceipt = React.forwardRef(({ books, username, period, stats, displayBooks, orderId, today, renderStars, formatPrice, getPeriodLabel, barcode, barcodeText, receiptTitle = 'MONTHLY READING', selectedMonth, selectedYear }, ref) => {
   const booksWithRatings = books.filter(book => book.rating > 0)
   const fiveStarBooks = booksWithRatings.filter(book => Math.round(book.rating) === 5).length
   const showStats = stats?.showStats || {
@@ -71,7 +71,7 @@ const MonthReceipt = React.forwardRef(({ books, username, period, stats, display
         </>
       )}
 
-      <Barcode barcode={barcode} />
+      <Barcode barcode={barcode} encode={barcodeText} />
     </div>
   )
 })

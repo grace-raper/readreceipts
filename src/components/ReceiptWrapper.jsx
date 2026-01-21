@@ -47,83 +47,7 @@ const ReceiptWrapper = forwardRef(({
   customSeasonEnd,
   receiptDate
 }, ref) => {
-  // Code39 barcode encoding
-  const code39 = {
-    '0': 'nnnwwnwnn',
-    '1': 'wnnwnnnnw',
-    '2': 'nnwwnnnnw',
-    '3': 'wnwwnnnnn',
-    '4': 'nnnwwnnnw',
-    '5': 'wnnwwnnnn',
-    '6': 'nnwwwnnnn',
-    '7': 'nnnwnnwnw',
-    '8': 'wnnwnnwnn',
-    '9': 'nnwwnnwnn',
-    A: 'wnnnnwnnw',
-    B: 'nnwnnwnnw',
-    C: 'wnwnnwnnn',
-    D: 'nnnnwwnnw',
-    E: 'wnnnwwnnn',
-    F: 'nnwnwwnnn',
-    G: 'nnnnnwwnw',
-    H: 'wnnnnwwnn',
-    I: 'nnwnnwwnn',
-    J: 'nnnnwwwnn',
-    K: 'wnnnnnnww',
-    L: 'nnwnnnnww',
-    M: 'wnwnnnnwn',
-    N: 'nnnnwnnww',
-    O: 'wnnnwnnwn',
-    P: 'nnwnwnnwn',
-    Q: 'nnnnnnwww',
-    R: 'wnnnnnwwn',
-    S: 'nnwnnnwwn',
-    T: 'nnnnwnwwn',
-    U: 'wwnnnnnnw',
-    V: 'nwwnnnnnw',
-    W: 'wwwnnnnnn',
-    X: 'nwnnwnnnw',
-    Y: 'wwnnwnnnn',
-    Z: 'nwwnwnnnn',
-    '-': 'nwnnnnwnw',
-    '.': 'wwnnnnwnn',
-    ' ': 'nwwnnnwnn',
-    '$': 'nwnwnwnnn',
-    '/': 'nwnwnnnwn',
-    '+': 'nwnnnwnwn',
-    '%': 'nnnwnwnwn',
-    '*': 'nwnnwnwnn', // start/stop
-  }
-
-  const encodeCode39 = (text) => {
-    const upper = `*${text.toUpperCase()}*`
-    const unit = 2
-    const wide = unit * 3
-    let cursor = 0
-    const bars = []
-
-    upper.split('').forEach((ch) => {
-      const pattern = code39[ch] || code39[' ']
-      for (let i = 0; i < pattern.length; i++) {
-        const isBar = i % 2 === 0
-        const width = pattern[i] === 'w' ? wide : unit
-        if (isBar) {
-          bars.push({ x: cursor, width })
-        }
-        cursor += width
-      }
-      // narrow space between characters
-      cursor += unit
-    })
-
-    // add quiet zones
-    const quiet = unit * 10
-    bars.forEach((bar) => {
-      bar.x += quiet
-    })
-    const totalWidth = cursor + quiet
-    return { bars, width: totalWidth }
-  }
+  const barcodeText = 'readreceipts.xyz'
 
   const renderStars = (rating) => {
     if (!rating || Number(rating) <= 0) return '-/5'
@@ -289,22 +213,7 @@ const ReceiptWrapper = forwardRef(({
   }
 
   // Generate barcode component
-  const barcode = (
-    <div className="rrg-barcode">
-      {(() => {
-        const text = 'readreceipts.xyz'
-        const { bars, width } = encodeCode39(text)
-        const height = 110
-        return (
-          <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-            {bars.map((bar, idx) => (
-              <rect key={idx} x={bar.x} y={8} width={bar.width} height={height - 16} fill="black" />
-            ))}
-          </svg>
-        )
-      })()}
-    </div>
-  )
+  // const barcode = encodeCode39('readreceipts.xyz')
 
   const getReceiptTitle = () => {
     if (template === 'seasonal') {
@@ -334,6 +243,8 @@ const ReceiptWrapper = forwardRef(({
     username,
     period,
     template,
+    barcodeText,
+    barcode: null,
     stats,
     displayBooks,
     orderId,
@@ -341,7 +252,6 @@ const ReceiptWrapper = forwardRef(({
     renderStars,
     formatPrice,
     getPeriodLabel,
-    barcode,
     receiptTitle,
     ref
   }

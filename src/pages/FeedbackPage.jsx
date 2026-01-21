@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import '../ReadingReceiptGenerator.css'
+import { trackEvent } from '../components/PostHogProvider'
 
 const FeedbackPage = () => {
   const [feedback, setFeedback] = useState('')
@@ -8,8 +9,11 @@ const FeedbackPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // TODO: Add backend integration here
-    console.log('Feedback submitted:', { feedback, email })
+    trackEvent('feedback_submitted', {
+      feedback,
+      email: email || null,
+      source: 'feedback_page'
+    })
     setSubmitted(true)
     setTimeout(() => {
       setFeedback('')
@@ -19,8 +23,8 @@ const FeedbackPage = () => {
   }
 
   return (
-    <div className="rrg-page">
-      <div className="rrg-container" style={{ maxWidth: '700px', paddingTop: '2rem', paddingBottom: '3rem' }}>
+    <div className="rrg-page rrg-page-compact">
+      <div className="rrg-container" style={{ maxWidth: '700px', paddingTop: '2rem', paddingBottom: '3rem', paddingLeft: '1rem', paddingRight: '1rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem', color: '#1f1307' }}>
             Submit Feedback

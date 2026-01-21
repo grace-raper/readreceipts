@@ -8,7 +8,7 @@ import ReceiptStatRow from './receipt-parts/ReceiptStatRow'
 import Barcode from './receipt-parts/Barcode'
 import DashedDivider from './receipt-parts/DashedDivider'
 
-const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, today, formatPrice, getPeriodLabel, barcode, showStats = {} }, ref) => {
+const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, today, formatPrice, getPeriodLabel, barcode, barcodeText, showStats = {} }, ref) => {
   const currentYear = new Date().getFullYear()
   const now = new Date()
   
@@ -112,7 +112,7 @@ const TbrReceipt = React.forwardRef(({ books, username, stats, displayBooks, tod
         </ReceiptSection>
         </>
       )}
-      <Barcode barcode={barcode}/>
+      <Barcode barcode={barcode} text={barcodeText} />
     </div>
   )
 })
