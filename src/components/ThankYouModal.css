@@ -214,9 +214,4 @@
   .modal-footer p {
     font-size: 0.88rem;
   }
-
-  .modal-header h2,
-  .modal-header svg {
-    display: none;
-  }
 }

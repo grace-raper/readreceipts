@@ -1,9 +1,22 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { X, Coffee, Heart } from 'lucide-react'
 import './ThankYouModal.css'
 import { trackEvent } from './PostHogProvider'
 
 const ThankYouModal = ({ isOpen, onClose }) => {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 600)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
   if (!isOpen) return null
 
   const handleCTAClick = (ctaType) => {
@@ -11,8 +24,6 @@ const ThankYouModal = ({ isOpen, onClose }) => {
       cta_type: ctaType
     })
   }
-
-  const avatarSrc = `${import.meta.env.BASE_URL}grace-avatar.png`
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -22,9 +33,13 @@ const ThankYouModal = ({ isOpen, onClose }) => {
         </button>
 
         <div className="modal-header">
-          <Heart size={32} style={{ color: '#d97706' }} />
-          <h2>Thanks for using Read Receipts!</h2>
-          <img src={avatarSrc} alt="Grace" className="modal-avatar" />
+          {!isMobile && (
+            <>
+              <Heart size={32} style={{ color: '#d97706' }} />
+              <h2>Thanks for using Read Receipts!</h2>
+            </>
+          )}
+          <img src="/grace-avatar.png" alt="Grace" className="modal-avatar" />
         </div>
 
         <div className="modal-body">
