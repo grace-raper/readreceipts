@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Grid } from '@giphy/react-components'
 import { GiphyFetch } from '@giphy/js-fetch-api'
 
 const GiphyBackground = ({ onGifSelect, selectedGif }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const canvasRef = useRef(null)
+  const [gridWidth, setGridWidth] = useState(400)
 
   const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || ''
   const gf = new GiphyFetch(GIPHY_API_KEY)
@@ -21,65 +22,22 @@ const GiphyBackground = ({ onGifSelect, selectedGif }) => {
     onGifSelect(gif)
   }
 
+  useEffect(() => {
+    const updateWidth = () => {
+      if (canvasRef.current) {
+        const width = canvasRef.current.clientWidth
+        if (width && width !== gridWidth) {
+          setGridWidth(width)
+        }
+      }
+    }
+    updateWidth()
+    window.addEventListener('resize', updateWidth)
+    return () => window.removeEventListener('resize', updateWidth)
+  }, [gridWidth])
+
   return (
     <div>
-      {selectedGif && (
-        <div style={{ 
-          marginBottom: '1rem',
-          padding: '1rem',
-          background: '#f8f4ec',
-          borderRadius: '8px',
-          border: '2px solid #d97706'
-        }}>
-          <div style={{ 
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem'
-          }}>
-            <img 
-              src={selectedGif.images.fixed_height_small.url}
-              alt={selectedGif.title}
-              style={{
-                width: '80px',
-                height: '80px',
-                objectFit: 'cover',
-                borderRadius: '6px',
-                border: '2px solid #1f1307'
-              }}
-            />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                Selected GIF
-              </div>
-              <div style={{ 
-                fontSize: '0.8rem', 
-                color: '#666',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}>
-                {selectedGif.title || 'Untitled'}
-              </div>
-            </div>
-            <button
-              onClick={() => onGifSelect(null)}
-              style={{
-                padding: '0.5rem 1rem',
-                border: '2px solid #1f1307',
-                borderRadius: '6px',
-                background: 'white',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 600,
-                fontSize: '0.85rem'
-              }}
-            >
-              Clear
-            </button>
-          </div>
-        </div>
-      )}
-
       <div style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
           Search GIFs
@@ -115,7 +73,7 @@ const GiphyBackground = ({ onGifSelect, selectedGif }) => {
         {GIPHY_API_KEY ? (
           <Grid
             key={searchQuery}
-            width={canvasRef.current?.offsetWidth - 16 || 400}
+            width={gridWidth}
             columns={3}
             gutter={6}
             fetchGifs={fetchGifs}

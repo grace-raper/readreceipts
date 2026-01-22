@@ -33,19 +33,6 @@ const UploadBackground = ({ onBackgroundChange }) => {
     })
   }
 
-  const handleRemove = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl)
-    }
-    setUploadedFile(null)
-    setPreviewUrl(null)
-    setFileType(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-    onBackgroundChange({ type: 'none', value: null })
-  }
-
   const handleClick = () => {
     fileInputRef.current?.click()
   }
@@ -102,99 +89,33 @@ const UploadBackground = ({ onBackgroundChange }) => {
           border: '2px solid #1f1307',
           borderRadius: '8px',
           overflow: 'hidden',
-          background: 'white'
+          background: 'white',
+          padding: '1rem'
         }}>
           <div style={{ 
-            position: 'relative',
-            width: '100%',
-            aspectRatio: '16/9',
-            background: '#f8f4ec',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            {fileType === 'image' && (
-              <img 
-                src={previewUrl} 
-                alt="Uploaded background"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-              />
-            )}
-            {fileType === 'video' && (
-              <video 
-                src={previewUrl}
-                autoPlay
-                loop
-                muted
-                playsInline
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-              />
-            )}
-          </div>
-          
-          <div style={{ 
-            padding: '1rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderTop: '1px solid #e2d9c8'
+            gap: '1rem'
           }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ 
                 fontWeight: 600, 
-                fontSize: '0.9rem',
+                fontSize: '0.95rem',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap'
               }}>
                 {uploadedFile.name}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
+              <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
                 {fileType === 'image' ? 'Image' : 'Video'} • {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
               </div>
             </div>
-            
-            <button
-              onClick={handleRemove}
-              style={{
-                padding: '0.5rem',
-                border: '2px solid #dc2626',
-                borderRadius: '6px',
-                background: 'white',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                color: '#dc2626',
-                fontFamily: 'inherit',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                marginLeft: '1rem'
-              }}
-            >
-              <X size={16} />
-              Remove
-            </button>
-          </div>
-
-          <div style={{ 
-            padding: '0.75rem 1rem',
-            background: '#f8f4ec',
-            borderTop: '1px solid #e2d9c8'
-          }}>
             <button
               onClick={handleClick}
               style={{
-                width: '100%',
-                padding: '0.5rem',
+                padding: '0.5rem 0.75rem',
                 border: '2px solid #1f1307',
                 borderRadius: '6px',
                 background: 'white',

@@ -5,7 +5,7 @@ const BackgroundSelector = ({ selectedType, onSelectType }) => {
   const backgroundTypes = [
     {
       id: 'solid',
-      label: 'Solid/Gradient',
+      label: 'Color',
       icon: Palette,
       description: 'Choose colors or gradients'
     },
@@ -17,15 +17,17 @@ const BackgroundSelector = ({ selectedType, onSelectType }) => {
     },
     {
       id: 'giphy',
-      label: 'Giphy',
+      label: 'GIPHY',
       icon: null,
-      logo: '/giphy-300.png',
+      logo: '/GIPHY-IconBlack-36x36.png',
+      logoSelected: '/GIPHY-IconWhite-36x36.png',
       description: 'Search animated GIFs'
     },
     {
       id: 'unsplash',
       label: 'Unsplash',
-      icon: Image,
+      icon: null,
+      logo: '/Unsplash_Symbol.svg',
       description: 'Browse free photos'
     }
   ]
@@ -37,8 +39,9 @@ const BackgroundSelector = ({ selectedType, onSelectType }) => {
       </label>
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-        gap: '0.75rem'
+        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+        gap: '0.75rem',
+        minWidth: 0
       }}>
         {backgroundTypes.map((type) => {
           const Icon = type.icon
@@ -50,9 +53,10 @@ const BackgroundSelector = ({ selectedType, onSelectType }) => {
               onClick={() => onSelectType(type.id)}
               style={{
                 padding: '1rem 0.75rem',
-                border: `2px solid ${isSelected ? '#d97706' : '#1f1307'}`,
+                border: `2px solid ${isSelected ? '#1f1307' : '#1f1307'}`,
                 borderRadius: '8px',
-                background: isSelected ? '#fef3c7' : 'white',
+                background: isSelected ? '#1f1307' : 'white',
+                color: isSelected ? 'white' : '#1f1307',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
                 display: 'flex',
@@ -75,20 +79,22 @@ const BackgroundSelector = ({ selectedType, onSelectType }) => {
             >
               {type.logo ? (
                 <img 
-                  src={type.logo} 
+                  src={isSelected && type.logoSelected ? type.logoSelected : type.logo} 
                   alt={type.label}
-                  style={{ height: '24px', objectFit: 'contain' }}
+                  style={{ 
+                    height: '22px', 
+                    objectFit: 'contain',
+                    filter: isSelected && !type.logoSelected ? 'invert(1)' : 'none'
+                  }}
                 />
               ) : Icon ? (
-                <Icon size={24} strokeWidth={2} />
+                <Icon size={24} strokeWidth={2} color={isSelected ? 'white' : '#1f1307'} />
               ) : null}
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                  {type.label}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#666', lineHeight: 1.3 }}>
-                  {type.description}
-                </div>
+              <div style={{
+                fontWeight: 600,
+                fontSize: '0.95rem'
+              }}>
+                {type.label}
               </div>
             </button>
           )

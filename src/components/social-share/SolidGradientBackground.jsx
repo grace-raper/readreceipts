@@ -3,28 +3,24 @@ import React, { useState } from 'react'
 const SolidGradientBackground = ({ onBackgroundChange }) => {
   const [backgroundMode, setBackgroundMode] = useState('preset')
   const [customColor, setCustomColor] = useState('#f8f4ec')
-  const [gradientStart, setGradientStart] = useState('#fef3c7')
-  const [gradientEnd, setGradientEnd] = useState('#fed7aa')
+  const [gradientStart, setGradientStart] = useState('#ffaf87')
+  const [gradientEnd, setGradientEnd] = useState('#ff6b6b')
   const [gradientDirection, setGradientDirection] = useState('to bottom')
 
   const presetColors = [
-    { name: 'Cream', value: '#f8f4ec' },
-    { name: 'Warm Beige', value: '#fef3c7' },
-    { name: 'Peach', value: '#fed7aa' },
-    { name: 'Mint', value: '#d1fae5' },
-    { name: 'Sky Blue', value: '#dbeafe' },
-    { name: 'Lavender', value: '#e9d5ff' },
-    { name: 'Rose', value: '#fce7f3' },
-    { name: 'Sage', value: '#dcfce7' }
+    { name: 'Peach', value: '#fbbf93' },
+    { name: 'Mint', value: '#a7f3d0' },
+    { name: 'Blue', value: '#93c5fd' },
+    { name: 'Lavender', value: '#c4b5fd' },
+    { name: 'Rose', value: '#f9a8d4' },
+    { name: 'Grey', value: '#e5e7eb' },
+    { name: 'Brown', value: '#d6b28f' }
   ]
 
   const presetGradients = [
-    { name: 'Sunset', value: 'linear-gradient(to bottom, #fef3c7, #fed7aa)' },
-    { name: 'Ocean', value: 'linear-gradient(to bottom, #dbeafe, #bfdbfe)' },
-    { name: 'Forest', value: 'linear-gradient(to bottom, #dcfce7, #bbf7d0)' },
-    { name: 'Lavender Dream', value: 'linear-gradient(to bottom, #e9d5ff, #f3e8ff)' },
-    { name: 'Peachy', value: 'linear-gradient(135deg, #fed7aa, #fce7f3)' },
-    { name: 'Cool Breeze', value: 'linear-gradient(135deg, #dbeafe, #d1fae5)' }
+    { name: 'Sunset', value: 'linear-gradient(135deg, #ffb347 0%, #ff416c 100%)' },
+    { name: 'Peach', value: 'linear-gradient(135deg, #ffe5c0 0%, #ff9ec7 100%)' },
+    { name: 'Cool Breeze', value: 'linear-gradient(135deg, #8fd3f4 0%, #84fab0 100%)' }
   ]
 
   const handlePresetColorClick = (color) => {
@@ -66,12 +62,14 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
             style={{
               flex: 1,
               padding: '0.5rem',
-              border: `2px solid ${backgroundMode === 'preset' ? '#d97706' : '#e2d9c8'}`,
+              border: `1px solid #1f1307`,
               borderRadius: '6px',
-              background: backgroundMode === 'preset' ? '#fef3c7' : 'white',
+              background: backgroundMode === 'preset' ? '#1f1307' : 'white',
               cursor: 'pointer',
               fontFamily: 'inherit',
-              fontWeight: 600
+              fontWeight: 600,
+              color: backgroundMode === 'preset' ? 'white' : '#1f1307',
+              transition: 'all 0.2s'
             }}
           >
             Presets
@@ -81,12 +79,14 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
             style={{
               flex: 1,
               padding: '0.5rem',
-              border: `2px solid ${backgroundMode === 'custom' ? '#d97706' : '#e2d9c8'}`,
+              border: `1px solid #1f1307`,
               borderRadius: '6px',
-              background: backgroundMode === 'custom' ? '#fef3c7' : 'white',
+              background: backgroundMode === 'custom' ? '#1f1307' : 'white',
               cursor: 'pointer',
               fontFamily: 'inherit',
-              fontWeight: 600
+              fontWeight: 600,
+              color: backgroundMode === 'custom' ? 'white' : '#1f1307',
+              transition: 'all 0.2s'
             }}
           >
             Custom
@@ -100,38 +100,30 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
                 Solid Colors
               </h4>
               <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '0.5rem'
+                display: 'flex',
+                gap: '0.75rem'
               }}>
                 {presetColors.map((color) => (
                   <button
                     key={color.name}
                     onClick={() => handlePresetColorClick(color.value)}
                     style={{
-                      padding: '0',
-                      border: '2px solid #1f1307',
-                      borderRadius: '6px',
+                      padding: 0,
+                      border: '1px solid #ffffff',
+                      borderRadius: '50%',
                       background: color.value,
                       cursor: 'pointer',
-                      height: '60px',
+                      width: '56px',
+                      height: '56px',
                       display: 'flex',
-                      alignItems: 'flex-end',
+                      alignItems: 'center',
                       justifyContent: 'center',
-                      overflow: 'hidden',
-                      position: 'relative'
+                      overflow: 'hidden'
                     }}
                     title={color.name}
                   >
-                    <span style={{
-                      fontSize: '0.7rem',
-                      padding: '0.25rem 0.5rem',
-                      background: 'rgba(255,255,255,0.9)',
-                      width: '100%',
-                      textAlign: 'center',
-                      fontWeight: 600
-                    }}>
-                      {color.name}
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#1f1307' }}>
+                      {/* {color.name} */}
                     </span>
                   </button>
                 ))}
@@ -143,8 +135,8 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
                 Gradients
               </h4>
               <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(2, 1fr)',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: '0.5rem'
               }}>
                 {presetGradients.map((gradient) => (
@@ -153,11 +145,11 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
                     onClick={() => handlePresetGradientClick(gradient.value)}
                     style={{
                       padding: '0',
-                      border: '2px solid #1f1307',
+                      border: '1px solid #ffffff',
                       borderRadius: '6px',
                       background: gradient.value,
                       cursor: 'pointer',
-                      height: '60px',
+                      height: '64px',
                       display: 'flex',
                       alignItems: 'flex-end',
                       justifyContent: 'center',
@@ -166,16 +158,16 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
                     }}
                     title={gradient.name}
                   >
-                    <span style={{
+                    {/* <span style={{
                       fontSize: '0.7rem',
-                      padding: '0.25rem 0.5rem',
-                      background: 'rgba(255,255,255,0.9)',
+                      padding: '0.35rem 0.5rem',
+                      background: '#f8f4ec',
                       width: '100%',
                       textAlign: 'center',
-                      fontWeight: 600
+                      fontWeight: 700
                     }}>
                       {gradient.name}
-                    </span>
+                    </span> */}
                   </button>
                 ))}
               </div>

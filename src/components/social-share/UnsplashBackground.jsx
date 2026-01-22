@@ -110,74 +110,6 @@ const UnsplashBackground = ({ onImageSelect, selectedImage }) => {
 
   return (
     <div>
-      {selectedImage && (
-        <div style={{ 
-          marginBottom: '1rem',
-          padding: '1rem',
-          background: '#f8f4ec',
-          borderRadius: '8px',
-          border: '2px solid #d97706'
-        }}>
-          <div style={{ 
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem'
-          }}>
-            <img 
-              src={selectedImage.thumb}
-              alt="Selected"
-              style={{
-                width: '80px',
-                height: '80px',
-                objectFit: 'cover',
-                borderRadius: '6px',
-                border: '2px solid #1f1307'
-              }}
-            />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>
-                Selected Photo
-              </div>
-              <div style={{ fontSize: '0.75rem', color: '#666' }}>
-                by{' '}
-                <a 
-                  href={selectedImage.photographerUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#d97706', textDecoration: 'none' }}
-                >
-                  {selectedImage.photographer}
-                </a>
-                {' '}on{' '}
-                <a
-                  href={selectedImage.unsplashUrl || addUtm('https://unsplash.com/')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#d97706', textDecoration: 'none' }}
-                >
-                  Unsplash
-                </a>
-              </div>
-            </div>
-            <button
-              onClick={() => onImageSelect(null)}
-              style={{
-                padding: '0.5rem 1rem',
-                border: '2px solid #1f1307',
-                borderRadius: '6px',
-                background: 'white',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 600,
-                fontSize: '0.85rem'
-              }}
-            >
-              Clear
-            </button>
-          </div>
-        </div>
-      )}
-
       <form onSubmit={handleSearch} style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
           Search Photos
@@ -200,20 +132,20 @@ const UnsplashBackground = ({ onImageSelect, selectedImage }) => {
           <button
             type="submit"
             style={{
-              padding: '0.75rem 1.5rem',
+              width: '48px',
+              height: '48px',
               border: '2px solid #1f1307',
               borderRadius: '6px',
-              background: '#fef3c7',
+              background: '#1f1307',
               cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem'
+              justifyContent: 'center'
             }}
+            aria-label="Search Unsplash"
+            title="Search"
           >
-            <Search size={18} />
-            Search
+            <Search size={18} color="white" />
           </button>
         </div>
       </form>
@@ -239,51 +171,36 @@ const UnsplashBackground = ({ onImageSelect, selectedImage }) => {
         ) : (
           <>
             <div style={{ 
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-              gap: '0.5rem'
+              columnCount: 3,
+              columnGap: '0.5rem'
             }}>
               {images.map((image) => (
-                <button
-                  key={image.id}
-                  onClick={() => handleImageClick(image)}
-                  style={{
-                    padding: 0,
-                    border: '2px solid #1f1307',
-                    borderRadius: '6px',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    background: 'none',
-                    aspectRatio: '4/3',
-                    position: 'relative'
-                  }}
-                >
-                  <img 
-                    src={image.urls.small}
-                    alt={image.alt_description || 'Unsplash photo'}
+                <div key={image.id} style={{ breakInside: 'avoid', marginBottom: '0.5rem' }}>
+                  <button
+                    onClick={() => handleImageClick(image)}
                     style={{
+                      padding: 0,
+                      border: 'none',
+                      borderRadius: 0,
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      background: 'none',
                       width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
                       display: 'block'
                     }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    padding: '0.25rem 0.5rem',
-                    background: 'rgba(0,0,0,0.7)',
-                    color: 'white',
-                    fontSize: '0.65rem',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {image.user.name}
-                  </div>
-                </button>
+                  >
+                    <img 
+                      src={image.urls.small}
+                      alt={image.alt_description || 'Unsplash photo'}
+                      style={{
+                        width: '100%',
+                        height: 'auto',
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
+                    />
+                  </button>
+                </div>
               ))}
             </div>
 
@@ -297,11 +214,15 @@ const UnsplashBackground = ({ onImageSelect, selectedImage }) => {
                   marginTop: '1rem',
                   border: '2px solid #1f1307',
                   borderRadius: '6px',
-                  background: 'white',
+                  background: '#1f1307',
+                  color: 'white',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   fontFamily: 'inherit',
-                  fontWeight: 600,
-                  opacity: loading ? 0.6 : 1
+                  fontWeight: 700,
+                  opacity: loading ? 0.6 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
                 {loading ? 'Loading...' : 'Load More'}

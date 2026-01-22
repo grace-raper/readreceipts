@@ -400,16 +400,15 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
           
           {/* Left Panel - Background Options */}
           <div style={{ flex: '1 1 400px', minWidth: '300px' }}>
-            <div className="rrg-card">
-              <button 
+            {/* <button 
                 className="rrg-button secondary" 
                 onClick={() => onNavigate?.('receipt')}
                 style={{ marginBottom: '1rem', width: 'auto' }}
               >
                 <ArrowLeft size={16} />
                 Back to Receipt
-              </button>
-
+              </button> */}
+            <div className="rrg-card">
               <h2>Customize Background</h2>
               <p style={{ margin: '0 0 1.5rem', lineHeight: 1.6, fontSize: '0.95rem' }}>
                 Choose a background for your receipt. Your receipt will be centered on top.
@@ -494,20 +493,16 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
               {background.type === 'unsplash' && background.imageData?.photographer && (
                 <div style={{ 
                   marginTop: '0.75rem', 
-                  fontSize: '0.85rem', 
-                  color: '#444', 
-                  lineHeight: 1.5,
-                  background: '#f8f4ec',
-                  border: '1px solid #e2d9c8',
-                  borderRadius: '6px',
-                  padding: '0.75rem'
+                  fontSize: '0.9rem', 
+                  color: '#333', 
+                  lineHeight: 1.6
                 }}>
                   Photo by{' '}
                   <a
                     href={background.imageData.photographerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: '#b45309', fontWeight: 600, textDecoration: 'none' }}
+                    style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}
                   >
                     {background.imageData.photographer}
                   </a>
@@ -516,7 +511,7 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
                     href={background.imageData.unsplashUrl || 'https://unsplash.com/?utm_source=readreceipts&utm_medium=referral'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: '#b45309', fontWeight: 600, textDecoration: 'none' }}
+                    style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}
                   >
                     Unsplash
                   </a>
