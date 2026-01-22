@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Grid } from '@giphy/react-components'
 import { GiphyFetch } from '@giphy/js-fetch-api'
+import { trackEvent } from '../PostHogProvider'
 
 const GiphyBackground = ({ onGifSelect, selectedGif }) => {
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchKey, setSearchKey] = useState(null)
   const canvasRef = useRef(null)
   const [gridWidth, setGridWidth] = useState(400)
 
@@ -20,6 +22,16 @@ const GiphyBackground = ({ onGifSelect, selectedGif }) => {
   const handleGifClick = (gif, e) => {
     e.preventDefault()
     onGifSelect(gif)
+  }
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      setSearchKey(Date.now())
+      trackEvent('social_share_giphy_search', {
+        search_query: searchQuery
+      })
+    }
   }
 
   useEffect(() => {
@@ -86,19 +98,11 @@ const GiphyBackground = ({ onGifSelect, selectedGif }) => {
         )}
       </div>
 
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '0.5rem',
-        fontSize: '0.75rem',
-        color: '#666',
-        marginTop: '0.5rem'
-      }}>
-        <span>Powered by</span>
+      <div style={{ marginTop: '0.5rem' }}>
         <img 
-          src="/giphy-300.png" 
-          alt="GIPHY" 
-          style={{ height: '20px' }}
+          src="/PoweredBy_640_Horizontal_Light-Backgrounds_With_Logo.gif" 
+          alt="Powered by GIPHY" 
+          style={{ height: '34px' }}
         />
       </div>
     </div>

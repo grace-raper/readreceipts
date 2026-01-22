@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Search } from 'lucide-react'
+import { trackEvent } from '../PostHogProvider'
 
 const UnsplashBackground = ({ onImageSelect, selectedImage }) => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,6 +63,9 @@ const UnsplashBackground = ({ onImageSelect, selectedImage }) => {
     e.preventDefault()
     setPage(1)
     fetchImages(searchQuery, 1)
+    trackEvent('social_share_unsplash_search', {
+      search_query: searchQuery || 'trending'
+    })
   }
 
   const handleImageClick = (image) => {
@@ -119,7 +123,7 @@ const UnsplashBackground = ({ onImageSelect, selectedImage }) => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for photos..."
+            placeholder="Search Unsplash (or leave empty for trending)..."
             style={{
               flex: 1,
               padding: '0.75rem 1rem',

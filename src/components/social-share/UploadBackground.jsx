@@ -140,7 +140,7 @@ const UploadBackground = ({ onBackgroundChange }) => {
         lineHeight: 1.5,
         color: '#92400e'
       }}>
-        <strong>Note:</strong> For videos, only the first frame will be used for PNG export. MP4 export is only available with GIF backgrounds.
+        <strong>Note:</strong> Uploaded videos (MP4, MOV, WebM) will be exported as MP4. Images will be exported as PNG.
       </div>
     </div>
   )
