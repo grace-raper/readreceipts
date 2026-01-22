@@ -1,30 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { ArrowLeft, Search, ZoomIn, ZoomOut, Download } from 'lucide-react'
+import { ArrowLeft, Download } from 'lucide-react'
 import html2canvas from 'html2canvas'
-import { Grid } from '@giphy/react-components'
-import { GiphyFetch } from '@giphy/js-fetch-api'
 import { Output, Mp4OutputFormat, BufferTarget, CanvasSource } from 'mediabunny'
 import { parseGIF, decompressFrames } from 'gifuct-js'
-import ReceiptWrapper from '../components/ReceiptWrapper'
+import BackgroundSelector from '../components/social-share/BackgroundSelector'
+import SolidGradientBackground from '../components/social-share/SolidGradientBackground'
+import UploadBackground from '../components/social-share/UploadBackground'
+import GiphyBackground from '../components/social-share/GiphyBackground'
+import UnsplashBackground from '../components/social-share/UnsplashBackground'
+import PreviewCanvas from '../components/social-share/PreviewCanvas'
 import '../ReadingReceiptGenerator.css'
 import { trackEvent } from '../components/PostHogProvider'
 
 const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
-  const [searchQuery, setSearchQuery] = useState('')
+  const [backgroundType, setBackgroundType] = useState('solid')
+  const [background, setBackground] = useState({ type: 'solid', value: '#f8f4ec' })
   const [selectedGif, setSelectedGif] = useState(null)
-  const [isSearching, setIsSearching] = useState(false)
+  const [selectedUnsplashImage, setSelectedUnsplashImage] = useState(null)
   const [zoom, setZoom] = useState(1)
-  const [backgroundPosition, setBackgroundPosition] = useState({ x: 50, y: 50 })
-  const [aspectRatio, setAspectRatio] = useState('1:1')
+  const [aspectRatio, setAspectRatio] = useState({ label: 'Square (1:1)', value: '1:1', ratio: 1 })
   const [receiptScale, setReceiptScale] = useState(0.9)
   const [isExporting, setIsExporting] = useState(false)
   const [exportProgress, setExportProgress] = useState(0)
-  const canvasRef = useRef(null)
   const previewRef = useRef(null)
   const receiptRef = useRef(null)
-
-  const GIPHY_API_KEY = import.meta.env.VITE_GIPHY_API_KEY || ''
-  const gf = new GiphyFetch(GIPHY_API_KEY)
 
 
   const aspectRatios = [
@@ -34,23 +33,44 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
     { label: 'Landscape (16:9)', value: '16:9', ratio: 16/9 }
   ]
 
-  const fetchGifs = (offset) => {
-    if (!searchQuery.trim()) {
-      return gf.trending({ offset, limit: 20 })
+  const handleBackgroundTypeChange = (type) => {
+    setBackgroundType(type)
+    if (type === 'solid') {
+      setBackground({ type: 'solid', value: '#f8f4ec' })
+    } else if (type !== 'giphy' && type !== 'unsplash') {
+      setBackground({ type: 'none', value: null })
     }
-    return gf.search(searchQuery, { offset, limit: 20 })
   }
 
-  const handleGifSelect = (gif, e) => {
-    e.preventDefault()
+  const handleBackgroundChange = (bgData) => {
+    setBackground(bgData)
+  }
+
+  const handleGifSelect = (gif) => {
     setSelectedGif(gif)
-    setZoom(1)
-    setBackgroundPosition({ x: 50, y: 50 })
-    
-    trackEvent('gif_selected', {
-      gif_id: gif.id,
-      gif_title: gif.title
-    })
+    if (gif) {
+      setBackground({ type: 'gif', value: gif.images.original.url, gifData: gif })
+      setZoom(1)
+      trackEvent('gif_selected', {
+        gif_id: gif.id,
+        gif_title: gif.title
+      })
+    } else {
+      setBackground({ type: 'none', value: null })
+    }
+  }
+
+  const handleUnsplashSelect = (image) => {
+    setSelectedUnsplashImage(image)
+    if (image) {
+      setBackground({ type: 'unsplash', value: image.url, imageData: image })
+      setZoom(1)
+      trackEvent('unsplash_image_selected', {
+        photographer: image.photographer
+      })
+    } else {
+      setBackground({ type: 'none', value: null })
+    }
   }
 
   useEffect(() => {
@@ -63,43 +83,17 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
     }
   }, [receiptConfig, aspectRatio])
 
-
-
-  const getCanvasStyle = () => {
-    const selectedAspect = aspectRatios.find(ar => ar.value === aspectRatio)
-    return {
-      position: 'relative',
-      width: '100%',
-      aspectRatio: selectedAspect?.ratio || 1,
-      border: 'none',
-      borderRadius: '0',
-      overflow: 'hidden',
-      background: selectedGif ? 'transparent' : '#f8f4ec',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }
-
-  const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 0.1, 3))
-  }
-
-  const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.1, 0.5))
-  }
-
   const handleDownload = async () => {
     if (!previewRef.current) return
 
     trackEvent('social_share_download_initiated', {
-      has_gif: !!selectedGif,
+      background_type: background.type,
       zoom_level: zoom,
-      aspect_ratio: aspectRatio
+      aspect_ratio: aspectRatio.value
     })
 
     try {
-      if (selectedGif) {
+      if (background.type === 'gif' && selectedGif) {
         await exportAsMP4()
       } else {
         await exportAsPNG()
@@ -129,9 +123,9 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
       URL.revokeObjectURL(url)
 
       trackEvent('social_share_download_completed', {
-        has_gif: !!selectedGif,
+        background_type: background.type,
         zoom_level: zoom,
-        aspect_ratio: aspectRatio,
+        aspect_ratio: aspectRatio.value,
         format: 'png'
       })
     })
@@ -149,7 +143,7 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
     const receiptRect = receiptRef.current?.getBoundingClientRect()
     const receiptWidthRatio = receiptRect && previewRect ? receiptRect.width / previewRect.width : 0.6
     const receiptHeightRatio = receiptRect && previewRect ? receiptRect.height / previewRect.height : 0.6
-    const selectedAspect = aspectRatios.find(ar => ar.value === aspectRatio)
+    const selectedAspect = aspectRatio
     const baseExport = 1200
     // Scale export so the longer side is ~1200px while respecting aspect ratio
     const exportWidth = (selectedAspect?.ratio || 1) >= 1
@@ -377,9 +371,9 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
     console.log('=== MP4 Export Complete ===')
 
     trackEvent('social_share_download_completed', {
-      has_gif: true,
+      background_type: 'gif',
       zoom_level: zoom,
-      aspect_ratio: aspectRatio,
+      aspect_ratio: aspectRatio.value,
       format: 'mp4',
       encoder: 'mediabunny',
       gif_frames: frames.length,
@@ -404,8 +398,8 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
       <div className="rrg-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
           
-          {/* Left Panel - GIF Search & Selection */}
-          <div style={{ flex: '1 1 400px', minWidth: '300px' }} ref={canvasRef}>
+          {/* Left Panel - Background Options */}
+          <div style={{ flex: '1 1 400px', minWidth: '300px' }}>
             <div className="rrg-card">
               <button 
                 className="rrg-button secondary" 
@@ -416,73 +410,37 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
                 Back to Receipt
               </button>
 
-              <h2>Add GIF Background</h2>
-              <p style={{ margin: '0 0 1rem', lineHeight: 1.6, fontSize: '0.95rem' }}>
-                Search for a GIF to use as your background. Your receipt will be centered on top.
+              <h2>Customize Background</h2>
+              <p style={{ margin: '0 0 1.5rem', lineHeight: 1.6, fontSize: '0.95rem' }}>
+                Choose a background for your receipt. Your receipt will be centered on top.
               </p>
 
-              {/* Search Bar */}
-              <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search Giphy (or leave empty for trending)..."
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #1f1307',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
+              <BackgroundSelector 
+                selectedType={backgroundType}
+                onSelectType={handleBackgroundTypeChange}
+              />
 
-              {/* GIF Grid using Giphy SDK */}
-              <div 
-                id="giphy-grid-container"
-                style={{
-                  maxHeight: '500px',
-                  overflowY: 'auto',
-                  border: '1px solid #e2d9c8',
-                  borderRadius: '6px',
-                  marginBottom: '1rem',
-                  width: '100%'
-                }}
-              >
-                {GIPHY_API_KEY ? (
-                  <Grid
-                    key={searchQuery}
-                    width={canvasRef.current?.offsetWidth - 48 || 400}
-                    columns={3}
-                    gutter={6}
-                    fetchGifs={fetchGifs}
-                    onGifClick={handleGifSelect}
-                  />
-                ) : (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
-                    Please add GIPHY API key to .env file
-                  </div>
-                )}
-              </div>
+              {backgroundType === 'solid' && (
+                <SolidGradientBackground onBackgroundChange={handleBackgroundChange} />
+              )}
 
-              {/* GIPHY Attribution */}
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem',
-                fontSize: '0.75rem',
-                color: '#666',
-                marginTop: '0.5rem'
-              }}>
-                <span>Powered by</span>
-                <img 
-                  src="/giphy-300.png" 
-                  alt="GIPHY" 
-                  style={{ height: '20px' }}
+              {backgroundType === 'upload' && (
+                <UploadBackground onBackgroundChange={handleBackgroundChange} />
+              )}
+
+              {backgroundType === 'giphy' && (
+                <GiphyBackground 
+                  onGifSelect={handleGifSelect}
+                  selectedGif={selectedGif}
                 />
-              </div>
+              )}
+
+              {backgroundType === 'unsplash' && (
+                <UnsplashBackground 
+                  onImageSelect={handleUnsplashSelect}
+                  selectedImage={selectedUnsplashImage}
+                />
+              )}
             </div>
           </div>
 
@@ -497,8 +455,11 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
                   Aspect Ratio
                 </label>
                 <select
-                  value={aspectRatio}
-                  onChange={(e) => setAspectRatio(e.target.value)}
+                  value={aspectRatio.value}
+                  onChange={(e) => {
+                    const selected = aspectRatios.find(ar => ar.value === e.target.value)
+                    setAspectRatio(selected)
+                  }}
                   style={{
                     width: '100%',
                     padding: '0.75rem',
@@ -517,122 +478,50 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
                 </select>
               </div>
 
-              {selectedGif && (
-                <>
-                  {/* Zoom Controls */}
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '1rem', 
-                    marginBottom: '1rem',
-                    padding: '0.75rem',
-                    background: '#f8f4ec',
-                    borderRadius: '6px'
-                  }}>
-                    <button
-                      onClick={handleZoomOut}
-                      className="rrg-button secondary"
-                      style={{ padding: '0.5rem', width: 'auto' }}
-                    >
-                      <ZoomOut size={18} />
-                    </button>
-                    <div style={{ flex: 1, textAlign: 'center', fontWeight: 600 }}>
-                      Zoom: {Math.round(zoom * 100)}%
-                    </div>
-                    <button
-                      onClick={handleZoomIn}
-                      className="rrg-button secondary"
-                      style={{ padding: '0.5rem', width: 'auto' }}
-                    >
-                      <ZoomIn size={18} />
-                    </button>
-                  </div>
-                </>
-              )}
+              <PreviewCanvas
+                background={background}
+                aspectRatio={aspectRatio}
+                zoom={zoom}
+                onZoomChange={setZoom}
+                receiptConfig={receiptConfig}
+                books={books}
+                username={username}
+                receiptRef={receiptRef}
+                previewRef={previewRef}
+                receiptScale={receiptScale}
+              />
 
-              {/* Preview Canvas */}
-              <div
-                ref={previewRef}
-                style={getCanvasStyle()}
-              >
-                {selectedGif && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      backgroundImage: `url(${selectedGif.images.original.url})`,
-                      backgroundSize: zoom > 1 ? `${zoom * 100}%` : 'cover',
-                      backgroundPosition: `${backgroundPosition.x}% ${backgroundPosition.y}%`,
-                      backgroundRepeat: 'no-repeat'
-                    }}
-                  />
-                )}
-                
-                {/* Receipt */}
-                <div
-                  ref={receiptRef}
-                  style={{
-                    position: 'relative',
-                    zIndex: 1,
-                    transform: `scale(${receiptScale})`,
-                    transformOrigin: 'center',
-                    maxWidth: '90%'
-                  }}
-                >
-                  {receiptConfig ? (
-                    <ReceiptWrapper
-                      books={receiptConfig.displayBooks || books}
-                      username={receiptConfig.username || username}
-                      period={receiptConfig.period}
-                      template={receiptConfig.template}
-                      readingGoal={receiptConfig.readingGoal}
-                      showStats={receiptConfig.showStats}
-                      pagesPerHour={receiptConfig.pagesPerHour}
-                      numBooksToShow={receiptConfig.numBooksToShow}
-                      selectedYear={receiptConfig.selectedYear}
-                      selectedMonth={receiptConfig.selectedMonth}
-                      selectedSeason={receiptConfig.selectedSeason}
-                      customSeasonName={receiptConfig.customSeasonName}
-                      customSeasonStart={receiptConfig.customSeasonStart}
-                      customSeasonEnd={receiptConfig.customSeasonEnd}
-                      receiptDate={receiptConfig.receiptDate}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        background: 'white',
-                        padding: '2rem 1.5rem',
-                        borderRadius: '4px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        textAlign: 'center'
-                      }}
-                    >
-                      <div style={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '1.2rem', 
-                        fontWeight: 'bold',
-                        marginBottom: '0.5rem'
-                      }}>
-                        READ RECEIPTS
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                        Create a receipt first
-                      </div>
-                      <div style={{ 
-                        marginTop: '1rem', 
-                        fontSize: '0.75rem', 
-                        color: '#999',
-                        fontFamily: 'monospace'
-                      }}>
-                        readreceipts.xyz
-                      </div>
-                    </div>
-                  )}
+              {background.type === 'unsplash' && background.imageData?.photographer && (
+                <div style={{ 
+                  marginTop: '0.75rem', 
+                  fontSize: '0.85rem', 
+                  color: '#444', 
+                  lineHeight: 1.5,
+                  background: '#f8f4ec',
+                  border: '1px solid #e2d9c8',
+                  borderRadius: '6px',
+                  padding: '0.75rem'
+                }}>
+                  Photo by{' '}
+                  <a
+                    href={background.imageData.photographerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#b45309', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    {background.imageData.photographer}
+                  </a>
+                  {' '}on{' '}
+                  <a
+                    href={background.imageData.unsplashUrl || 'https://unsplash.com/?utm_source=readreceipts&utm_medium=referral'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#b45309', fontWeight: 600, textDecoration: 'none' }}
+                  >
+                    Unsplash
+                  </a>
                 </div>
-              </div>
+              )}
 
               {/* Download Button */}
               {isExporting && (
@@ -653,36 +542,38 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
                 </div>
               )}
               
-              {!isExporting && selectedGif && (
-                <button
-                  onClick={handleDownload}
-                  className="rrg-button"
-                  style={{ marginTop: '1rem', width: '100%' }}
-                >
-                  <Download size={18} />
-                  Download as MP4
-                </button>
-              )}
-              
-              {!isExporting && !selectedGif && receiptConfig && (
-                <button
-                  onClick={handleDownload}
-                  className="rrg-button"
-                  style={{ marginTop: '1rem', width: '100%' }}
-                >
-                  <Download size={18} />
-                  Download as PNG
-                </button>
+              {!isExporting && (
+                <>
+                  {background.type === 'gif' && selectedGif ? (
+                    <button
+                      onClick={handleDownload}
+                      className="rrg-button"
+                      style={{ marginTop: '1rem', width: '100%' }}
+                    >
+                      <Download size={18} />
+                      Download as MP4
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleDownload}
+                      className="rrg-button"
+                      style={{ marginTop: '1rem', width: '100%' }}
+                    >
+                      <Download size={18} />
+                      Download as PNG
+                    </button>
+                  )}
+                </>
               )}
 
-              {!selectedGif && (
+              {background.type === 'none' && (
                 <div style={{ 
                   marginTop: '1rem', 
                   textAlign: 'center', 
                   color: '#666',
                   fontSize: '0.95rem'
                 }}>
-                  Select a GIF from the search results to get started
+                  Choose a background option to get started
                 </div>
               )}
             </div>
