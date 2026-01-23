@@ -614,12 +614,12 @@ const exportAsVideoMP4 = async () => {
 
 
   return (
-    <div className="rrg-page">
+    <div className="rrg-page rrg-page-compact">
       <div className="rrg-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
           
           {/* Left Panel - Background Options */}
-          <div style={{ flex: '1 1 400px', minWidth: '300px' }}>
+          <div className="rrg-share-panel" style={{ flex: '1 1 400px', minWidth: '300px' }}>
             {/* <button 
                 className="rrg-button secondary" 
                 onClick={() => onNavigate?.('receipt')}
@@ -664,7 +664,7 @@ const exportAsVideoMP4 = async () => {
           </div>
 
           {/* Right Panel - Preview & Controls */}
-          <div style={{ flex: '1 1 500px', minWidth: '300px' }}>
+          <div className="rrg-share-panel" style={{ flex: '1 1 500px', minWidth: '300px' }}>
             <div className="rrg-card">
               <h2>Preview</h2>
               

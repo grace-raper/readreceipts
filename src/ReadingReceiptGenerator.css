@@ -457,6 +457,11 @@
   .rrg-preview-actions .rrg-button {
     width: 100%;
   }
+  .rrg-share-panel {
+    padding: 0;
+    margin: 0 auto;
+    max-width: 90vw;
+  }
   .rrg-customize {
     padding: 1rem 1rem;
     margin: 0 auto;

@@ -61,13 +61,14 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
             onClick={() => setBackgroundMode('preset')}
             style={{
               flex: 1,
-              padding: '0.5rem',
-              border: `1px solid #1f1307`,
+              padding: '0.65rem',
+              border: `2px solid #1f1307`,
               borderRadius: '6px',
               background: backgroundMode === 'preset' ? '#1f1307' : 'white',
               cursor: 'pointer',
               fontFamily: 'inherit',
-              fontWeight: 600,
+              fontWeight: 700,
+              fontSize: '0.95rem',
               color: backgroundMode === 'preset' ? 'white' : '#1f1307',
               transition: 'all 0.2s'
             }}
@@ -78,13 +79,14 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
             onClick={() => setBackgroundMode('custom')}
             style={{
               flex: 1,
-              padding: '0.5rem',
-              border: `1px solid #1f1307`,
+              padding: '0.65rem',
+              border: `2px solid #1f1307`,
               borderRadius: '6px',
               background: backgroundMode === 'custom' ? '#1f1307' : 'white',
               cursor: 'pointer',
               fontFamily: 'inherit',
-              fontWeight: 600,
+              fontWeight: 700,
+              fontSize: '0.95rem',
               color: backgroundMode === 'custom' ? 'white' : '#1f1307',
               transition: 'all 0.2s'
             }}
@@ -100,8 +102,9 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
                 Solid Colors
               </h4>
               <div style={{ 
-                display: 'flex',
-                gap: '0.75rem'
+                display: 'grid',
+                gridTemplateColumns: 'repeat(7, minmax(0, 1fr))',
+                gap: '0.5rem'
               }}>
                 {presetColors.map((color) => (
                   <button
@@ -113,8 +116,8 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
                       borderRadius: '50%',
                       background: color.value,
                       cursor: 'pointer',
-                      width: '56px',
-                      height: '56px',
+                      width: '100%',
+                      aspectRatio: '1 / 1',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -149,7 +152,7 @@ const SolidGradientBackground = ({ onBackgroundChange }) => {
                       borderRadius: '6px',
                       background: gradient.value,
                       cursor: 'pointer',
-                      height: '64px',
+                      height: '50px',
                       display: 'flex',
                       alignItems: 'flex-end',
                       justifyContent: 'center',
