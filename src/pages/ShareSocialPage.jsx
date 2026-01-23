@@ -24,6 +24,35 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
   const [exportProgress, setExportProgress] = useState(0)
   const previewRef = useRef(null)
   const receiptRef = useRef(null)
+  const [savedShareState, setSavedShareState] = useState(() => {
+    // Prefer persisted state if it exists (refresh), otherwise use incoming props from generator
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = JSON.parse(localStorage.getItem('social_share_state') || 'null')
+        if (stored) return stored
+      } catch (e) {
+        console.error('Error reading saved social share state', e)
+      }
+    }
+    if (receiptConfig || (books && books.length) || username) {
+      return {
+        receiptConfig,
+        books,
+        username
+      }
+    }
+    return null
+  })
+
+  const effectiveReceiptConfig = savedShareState?.receiptConfig || receiptConfig || {}
+  const effectiveBooks = savedShareState?.books || books || []
+  const effectiveUsername = savedShareState?.username ?? username ?? ''
+  const initialBackground = savedShareState?.background
+  const initialBackgroundType = savedShareState?.backgroundType
+  const initialAspectRatio = savedShareState?.aspectRatio
+  const initialZoom = savedShareState?.zoom
+  const initialSelectedGif = savedShareState?.selectedGif
+  const initialSelectedUnsplash = savedShareState?.selectedUnsplashImage
 
 
   const aspectRatios = [
@@ -32,6 +61,53 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
     { label: 'Instagram Story (9:16)', value: '9:16', ratio: 9/16 },
     { label: 'Landscape (16:9)', value: '16:9', ratio: 16/9 }
   ]
+
+  // Apply any saved state (including background/zoom/aspect) after initial load
+  useEffect(() => {
+    if (savedShareState) {
+      if (initialBackgroundType) setBackgroundType(initialBackgroundType)
+      if (initialBackground) setBackground(initialBackground)
+      if (initialAspectRatio) setAspectRatio(initialAspectRatio)
+      if (initialZoom) setZoom(initialZoom)
+      if (initialSelectedGif) setSelectedGif(initialSelectedGif)
+      if (initialSelectedUnsplash) setSelectedUnsplashImage(initialSelectedUnsplash)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedShareState])
+
+  useEffect(() => {
+    // Persist all social share relevant state for refresh
+    const backgroundToSave = background?.type === 'upload'
+      ? { type: background.type, value: background.value, fileType: background.fileType }
+      : background
+
+    const stateToSave = {
+      receiptConfig: effectiveReceiptConfig,
+      books: effectiveBooks,
+      username: effectiveUsername,
+      background: backgroundToSave,
+      backgroundType,
+      aspectRatio,
+      zoom,
+      selectedGif,
+      selectedUnsplashImage
+    }
+    try {
+      localStorage.setItem('social_share_state', JSON.stringify(stateToSave))
+    } catch (e) {
+      console.error('Error saving social share state', e)
+    }
+  }, [
+    effectiveReceiptConfig,
+    effectiveBooks,
+    effectiveUsername,
+    background,
+    backgroundType,
+    aspectRatio,
+    zoom,
+    selectedGif,
+    selectedUnsplashImage
+  ])
 
   const handleBackgroundTypeChange = (type) => {
     setBackgroundType(type)
@@ -98,7 +174,7 @@ const ShareSocialPage = ({ onNavigate, receiptConfig, books, username }) => {
       const scale = targetHeight / receiptHeight
       setReceiptScale(Math.min(scale, 1))
     }
-  }, [receiptConfig, aspectRatio])
+  }, [effectiveReceiptConfig, aspectRatio])
 
   const handleDownload = async () => {
     if (!previewRef.current) return
@@ -705,9 +781,9 @@ const exportAsVideoMP4 = async () => {
                 aspectRatio={aspectRatio}
                 zoom={zoom}
                 onZoomChange={setZoom}
-                receiptConfig={receiptConfig}
-                books={books}
-                username={username}
+                receiptConfig={effectiveReceiptConfig}
+                books={effectiveBooks}
+                username={effectiveUsername}
                 receiptRef={receiptRef}
                 previewRef={previewRef}
                 receiptScale={receiptScale}

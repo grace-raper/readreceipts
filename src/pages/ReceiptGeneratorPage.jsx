@@ -17,17 +17,43 @@ import '../ReadingReceiptGenerator.css'
 import '../ReceiptTemplates.css'
 
 const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { read: 0, currentlyReading: 0, toRead: 0 }, onNavigate }) => {
-  const [books, setBooks] = useState(initialBooks)
+  // Load from localStorage first, fallback to props only if nothing saved
+  const getInitialState = () => {
+    if (typeof window === 'undefined') return null
+    try {
+      const saved = localStorage.getItem('receiptSettings')
+      if (saved) return JSON.parse(saved)
+      const shared = localStorage.getItem('social_share_state')
+      if (shared) {
+        const sharedParsed = JSON.parse(shared)
+        if (sharedParsed?.receiptConfig) {
+          return {
+            ...sharedParsed.receiptConfig,
+            books: sharedParsed.books,
+            username: sharedParsed.username
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error loading initial state', e)
+    }
+    return null
+  }
+
+  const initialState = getInitialState()
+
+  const [books, setBooks] = useState(initialState?.books || initialBooks)
   const [username, setUsername] = useState(() => {
+    if (initialState?.username !== undefined) return initialState.username
     if (initialUsername) return initialUsername
     if (typeof window !== 'undefined') {
       return localStorage.getItem('rrg_customer_name') || ''
     }
     return ''
   })
-  const [period, setPeriod] = useState('all')
-  const [template, setTemplate] = useState('standard')
-  const [readingGoal, setReadingGoal] = useState(12)
+  const [period, setPeriod] = useState(initialState?.period || 'all')
+  const [template, setTemplate] = useState(initialState?.template || 'standard')
+  const [readingGoal, setReadingGoal] = useState(initialState?.readingGoal ?? 12)
   
   // Template engagement tracking
   const templateStartTimeRef = useRef(Date.now())
@@ -35,16 +61,16 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
   const templateInteractionsRef = useRef(0)
   const today = new Date()
   const lastMonthDate = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-  const [selectedYear, setSelectedYear] = useState(lastMonthDate.getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState(lastMonthDate.getMonth())
-  const [selectedSeason, setSelectedSeason] = useState('winter')
-  const [customSeasonName, setCustomSeasonName] = useState('')
-  const [customSeasonStart, setCustomSeasonStart] = useState('')
-  const [customSeasonEnd, setCustomSeasonEnd] = useState('')
-  const [receiptDate, setReceiptDate] = useState(new Date().toISOString().split('T')[0])
-  const [pagesPerHour, setPagesPerHour] = useState(30)
-  const [numBooksToShow, setNumBooksToShow] = useState(10)
-  const [showStats, setShowStats] = useState({
+  const [selectedYear, setSelectedYear] = useState(initialState?.selectedYear ?? lastMonthDate.getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(initialState?.selectedMonth ?? lastMonthDate.getMonth())
+  const [selectedSeason, setSelectedSeason] = useState(initialState?.selectedSeason || 'winter')
+  const [customSeasonName, setCustomSeasonName] = useState(initialState?.customSeasonName || '')
+  const [customSeasonStart, setCustomSeasonStart] = useState(initialState?.customSeasonStart || '')
+  const [customSeasonEnd, setCustomSeasonEnd] = useState(initialState?.customSeasonEnd || '')
+  const [receiptDate, setReceiptDate] = useState(initialState?.receiptDate || new Date().toISOString().split('T')[0])
+  const [pagesPerHour, setPagesPerHour] = useState(initialState?.pagesPerHour ?? 30)
+  const [numBooksToShow, setNumBooksToShow] = useState(initialState?.numBooksToShow ?? 10)
+  const [showStats, setShowStats] = useState(initialState?.showStats || {
     booksRead: true,
     totalPages: true,
     estHours: true,
@@ -67,15 +93,15 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
     tbrOldest: true,
     tbrNewest: true,
   })
-  const [showManualEntry, setShowManualEntry] = useState(false)
+  const [showManualEntry, setShowManualEntry] = useState(initialState?.showManualEntry ?? false)
   const [showAllBooksModal, setShowAllBooksModal] = useState(false)
-  const [modalShelf, setModalShelf] = useState('all')
+  const [modalShelf, setModalShelf] = useState(initialState?.modalShelf || 'all')
   const [showThankYouModal, setShowThankYouModal] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [feedbackText, setFeedbackText] = useState('')
   const [chromeHidden, setChromeHidden] = useState(false)
-  const [editingBook, setEditingBook] = useState(null)
-  const [manualBook, setManualBook] = useState({
+  const [editingBook, setEditingBook] = useState(initialState?.editingBook || null)
+  const [manualBook, setManualBook] = useState(initialState?.manualBook || {
     title: '',
     author: '',
     pages: '',
@@ -85,63 +111,61 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
     hidden: false
   })
   const receiptRef = useRef(null)
+  const hasHydratedRef = useRef(false)
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem('receiptSettings')
-    if (savedSettings) {
-      const {
-        selectedYear: storedYear,
-        selectedMonth: storedMonth,
-        selectedSeason: storedSeason,
-        customSeasonName: storedCustomSeasonName,
-        customSeasonStart: storedCustomSeasonStart,
-        customSeasonEnd: storedCustomSeasonEnd,
-        pagesPerHour: storedPagesPerHour,
-        numBooksToShow: storedNumBooksToShow,
-        showStats: storedShowStats,
-        showManualEntry: storedShowManualEntry,
-        modalShelf: storedModalShelf,
-        editingBook: storedEditingBook,
-        manualBook: storedManualBook,
-      } = JSON.parse(savedSettings)
-
-      setSelectedYear(storedYear)
-      setSelectedMonth(storedMonth)
-      setSelectedSeason(storedSeason)
-      setCustomSeasonName(storedCustomSeasonName)
-      setCustomSeasonStart(storedCustomSeasonStart)
-      setCustomSeasonEnd(storedCustomSeasonEnd)
-      setPagesPerHour(storedPagesPerHour)
-      setNumBooksToShow(storedNumBooksToShow || 10)
-      setShowStats({
-        statsSection: storedShowStats?.statsSection ?? true,
-        booksRead: storedShowStats?.booksRead ?? true,
-        totalPages: storedShowStats?.totalPages ?? true,
-        estHours: storedShowStats?.estHours ?? true,
-        avgRating: storedShowStats?.avgRating ?? true,
-        goalSection: storedShowStats?.goalSection ?? true,
-        goalBooks: storedShowStats?.goalBooks ?? true,
-        goalBooksRead: storedShowStats?.goalBooksRead ?? true,
-        goalProgress: storedShowStats?.goalProgress ?? true,
-        highlightsSection: storedShowStats?.highlightsSection ?? true,
-        highlightsAvgLength: storedShowStats?.highlightsAvgLength ?? true,
-        highlightsAvgRating: storedShowStats?.highlightsAvgRating ?? true,
-        highlightsFiveStar: storedShowStats?.highlightsFiveStar ?? true,
-        highlightsMostReadMonth: storedShowStats?.highlightsMostReadMonth ?? true,
-        highlightsShortest: storedShowStats?.highlightsShortest ?? true,
-        highlightsLongest: storedShowStats?.highlightsLongest ?? true,
-        tbrSection: storedShowStats?.tbrSection ?? true,
-        tbrBooks: storedShowStats?.tbrBooks ?? true,
-        tbrAddedThisYear: storedShowStats?.tbrAddedThisYear ?? true,
-        tbrOldest: storedShowStats?.tbrOldest ?? true,
-        tbrNewest: storedShowStats?.tbrNewest ?? true,
-      })
-      setShowManualEntry(storedShowManualEntry)
-      setModalShelf(storedModalShelf)
-      setEditingBook(storedEditingBook)
-      setManualBook(storedManualBook)
-    }
+    // State already initialized from localStorage, just mark as hydrated
+    hasHydratedRef.current = true
   }, [])
+
+  useEffect(() => {
+    if (!hasHydratedRef.current) return
+
+    const settingsToSave = {
+      selectedYear,
+      selectedMonth,
+      selectedSeason,
+      customSeasonName,
+      customSeasonStart,
+      customSeasonEnd,
+      pagesPerHour,
+      numBooksToShow,
+      showStats,
+      showManualEntry,
+      modalShelf,
+      editingBook,
+      manualBook,
+      period,
+      template,
+      readingGoal,
+      books,
+      username
+    }
+    try {
+      localStorage.setItem('receiptSettings', JSON.stringify(settingsToSave))
+    } catch (e) {
+      console.error('Error saving receipt settings', e)
+    }
+  }, [
+    selectedYear,
+    selectedMonth,
+    selectedSeason,
+    customSeasonName,
+    customSeasonStart,
+    customSeasonEnd,
+    pagesPerHour,
+    numBooksToShow,
+    showStats,
+    showManualEntry,
+    modalShelf,
+    editingBook,
+    manualBook,
+    period,
+    template,
+    readingGoal,
+    books,
+    username
+  ])
 
   useEffect(() => {
     let lastY = window.scrollY
@@ -808,6 +832,18 @@ const ReceiptGeneratorPage = ({ initialBooks, initialUsername, shelfCounts = { r
                       readingGoal,
                       displayBooks,
                       username
+                    }
+                    try {
+                      localStorage.setItem(
+                        'social_share_state',
+                        JSON.stringify({
+                          receiptConfig: config,
+                          books: displayBooks,
+                          username
+                        })
+                      )
+                    } catch (e) {
+                      console.error('Error saving social share state', e)
                     }
                     onNavigate?.('share-social', config)
                   }}
