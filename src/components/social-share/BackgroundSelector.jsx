@@ -15,14 +15,14 @@ const BackgroundSelector = ({ selectedType, onSelectType }) => {
       icon: Upload,
       description: 'Upload your own image/video'
     },
-    {
-      id: 'giphy',
-      label: 'GIPHY',
-      icon: null,
-      logo: '/GIPHY-IconBlack-36x36.png',
-      logoSelected: '/GIPHY-IconWhite-36x36.png',
-      description: 'Search animated GIFs'
-    },
+    // {
+    //   id: 'giphy',
+    //   label: 'GIPHY',
+    //   icon: null,
+    //   logo: '/GIPHY-IconBlack-36x36.png',
+    //   logoSelected: '/GIPHY-IconWhite-36x36.png',
+    //   description: 'Search animated GIFs'
+    // },
     {
       id: 'unsplash',
       label: 'Unsplash',
@@ -39,7 +39,7 @@ const BackgroundSelector = ({ selectedType, onSelectType }) => {
       </label>
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
         gap: '0.75rem',
         minWidth: 0
       }}>
